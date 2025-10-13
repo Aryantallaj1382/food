@@ -1,0 +1,78 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Food extends Model
+{
+    use HasFactory;
+    protected $table = 'foods';
+
+    protected $fillable = [
+        'restaurant_id',
+        'name',
+        'image',
+        'description',
+        'is_available',
+    ];
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
+    protected $appends = ['restaurant'];
+
+    public function getRestaurantNameAttribute()
+    {
+        $restaurant = $this->restaurant()->first(); // رابطه را دستی بگیر
+        return $restaurant ? $restaurant->name : null;
+    }
+    public function getImageAttribute($value)
+    {
+        return $value ? url('public/'.$value) : null;
+
+    }
+    public function category()
+    {
+        return $this->belongsTo(Category::class , 'food_categories_id');
+    }
+    public function restaurant1()
+    {
+        return $this->belongsTo(Restaurant::class);
+    }
+
+    public function restaurant()
+    {
+        return $this->belongsTo(Restaurant::class , 'restaurant_id');
+    }
+    public function options()
+    {
+        return $this->hasMany(FoodOption::class);
+    }
+    public function getDiscountPercentageAttribute()
+    {
+        if ($this->options->isEmpty()) {
+            return 0;
+        }
+        $bestOption = $this->options->sortByDesc(function ($option) {
+            if ($option->price && $option->price_discount) {
+                return (($option->price - $option->price_discount) / $option->price) * 100;
+            }
+            return 0;
+        })->first();
+
+        $price = $bestOption->price;
+        $price_discount = $bestOption->price_discount;
+
+        if ($price > 0 && $price_discount < $price && $price_discount != null) {
+            $discount = (($price - $price_discount) / $price) * 100;
+            return round($discount, 2);
+        }
+
+        return 0;
+    }
+
+
+
+}
