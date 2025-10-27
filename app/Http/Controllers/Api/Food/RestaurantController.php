@@ -7,6 +7,7 @@ use App\Models\Comment;
 use App\Models\CommentLike;
 use App\Models\Restaurant;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class RestaurantController extends Controller
@@ -17,7 +18,10 @@ class RestaurantController extends Controller
         if (is_null($restaurant)) {
             return response()->json(['message' => 'Restaurant not found'], 404);
         }
+        $today = Carbon::now();
+        $dayName = $today->format('l');
         $return = [
+            'today' => $dayName,
             'name' => $restaurant->name,
             'image' => $restaurant->image,
             'sending_way' => $restaurant->sending_way,
@@ -47,7 +51,7 @@ class RestaurantController extends Controller
             return api_response([], 'Restaurant not found', 404);
         }
 
-        // گروه‌بندی غذاها بر اساس کتگوری
+
         $grouped = $restaurant->foods
             ->groupBy(function ($food) {
                 return $food->category->name ?? 'بدون دسته‌بندی';
@@ -196,5 +200,40 @@ class RestaurantController extends Controller
 
         return response()->json(['message' => 'رأی شما ثبت شد']);
     }
+
+
+    public function getAvailableTimes($restaurantId)
+    {
+        $restaurant = Restaurant::findOrFail($restaurantId);
+
+        $now = Carbon::now('Asia/Tehran');           // ساعت الان تهران
+        $startFrom = $now->copy()->addHours(2);      // دو ساعت بعد از الان
+
+        $times = [];
+
+        $intervals = [
+            [Carbon::parse($restaurant->morning_start, 'Asia/Tehran'), Carbon::parse($restaurant->morning_end, 'Asia/Tehran')],
+            [Carbon::parse($restaurant->afternoon_start, 'Asia/Tehran'), Carbon::parse($restaurant->afternoon_end, 'Asia/Tehran')],
+        ];
+
+        foreach ($intervals as [$start, $end]) {
+            $current = $start->copy();
+
+            while ($current->lte($end)) {
+                // فقط تایم‌هایی که بعد از دو ساعت بعد الان هستند
+                if ($current->gte($startFrom)) {
+                    $times[] = $current->format('H:i');
+                }
+                $current->addMinutes(30);
+            }
+        }
+
+        return api_response($times);
+    }
+
+
+
+
+
 
 }

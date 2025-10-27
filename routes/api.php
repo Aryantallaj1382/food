@@ -45,11 +45,13 @@ Route::prefix('restaurant')->controller(RestaurantController::class)->group(func
    Route::get('/show/{id}', 'show');
    Route::get('/menu/{id}', 'menu');
    Route::get('/times/{id}', 'times');
+   Route::get('/time/{id}', 'getAvailableTimes');
    Route::get('/comments/{id}', 'comments');
    Route::post('/toggle/{id}', 'toggle')->middleware('auth:sanctum');
 });
 Route::prefix('order')->controller(FinalOrderController::class)->group(function () {
     Route::post('/send_price', 'send_price');
     Route::post('/check_discount', 'check_discount')->middleware('auth:sanctum');
+    Route::post('/store', 'store')->middleware('auth:sanctum');
 
 });

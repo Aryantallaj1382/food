@@ -17,9 +17,10 @@ class OrderItem extends Model
         return $this->belongsTo(Order::class);
     }
 
-    public function food()
+
+    public function option()
     {
-        return $this->belongsTo(Food::class);
+        return $this->belongsTo(FoodOption::class , 'food_option_id');
     }
 
     public function getTotalPriceAttribute()

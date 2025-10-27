@@ -23,11 +23,13 @@ class AddressController extends Controller
             'lat' => 'required',
             'lng' => 'required',
         ]);
+        Address::where('user_id', $user->id)->update(['is_main' => false]);
+
         $address = Address::create([
             'address' => $request->address,
             'latitude' => $request->lat,
             'longitude' => $request->lng,
-            'is_main' => false,
+            'is_main' => true,
             'user_id' => $user->id,
 
         ]);

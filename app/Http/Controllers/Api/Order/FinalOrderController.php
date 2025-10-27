@@ -18,29 +18,28 @@ class FinalOrderController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string',
             'restaurant_discount' => 'nullable',
             'discount_code' => 'nullable|string',
             'phone' => 'nullable|string',
             'mobile' => 'required|string',
-            'gateway' => 'required|string',
+            'gateway' => 'nullable|string',
             'notes' => 'nullable|string',
             'time' => 'required|date',
             'is_wallet' => 'required',
             'payment_method' => 'required|string',
             'sending_method' => 'required|string',
-            'restaurant_id' => 'required|exists:restaurants,id',
+            'restaurantId' => 'required|exists:restaurants,id',
             'address_id' => 'required|exists:addresses,id',
             'items' => 'required|array|min:1',
             'items.*.id' => 'required|exists:food,id',
             'items.*.quantity' => 'required|integer|min:1',
         ]);
-        $rest = Restaurant::find($request->restaurant_id);
+        $rest = Restaurant::find($request->restaurantId);
         $user = auth()->user();
         $address= Address::find($request->address_id);
         $order = Order::create([
             'address_id' => $request->address_id,
-            'restaurant_id' => $request->restaurant_id,
+            'restaurant_id' => $request->restaurantId,
             'user_id' => $user->id,
             'payment_status' => 'pending',
             'payment_method' => $request->payment_method,
@@ -66,7 +65,7 @@ class FinalOrderController extends Controller
             $totalWithoutDiscount += $lineTotal;
 
             $order->items()->create([
-                'food_id' => $item['id'],
+                'food_option_id' => $item['id'],
                 'quantity' => $item['quantity'],
                 'price' => $food->price,
                 'dish_quantity' => $item['dish_quantity'] ?? null,
@@ -87,10 +86,10 @@ class FinalOrderController extends Controller
             $rest_discount = ($rest->discount * $totalWithoutDiscount)/100;
             $total = $totalWithoutDiscount - $rest_discount;
         }
-        elseif ($request->discount_code == true)
-        {
-            //
-        }
+//        elseif ($request->discount_code == true)
+//        {
+//            //
+//        }
 
 
         if ($request->is_wallet == true)
@@ -127,7 +126,6 @@ class FinalOrderController extends Controller
         $send_price = $rest->send_price * $distance;
         return api_response((int)$send_price);
     }
-
     public function check_discount(Request $request)
     {
         $code = $request->input('code');
@@ -162,7 +160,7 @@ class FinalOrderController extends Controller
         return api_response([
             'code' =>$discount->name,
             'percentage' => (int)$discount->percentage,
-        ] , 'ok');
+        ] , 'تخفیف با موفقیت اعمال شد');
 
     }
 }

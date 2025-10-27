@@ -2,18 +2,34 @@
 
 @section('content')
     <div class="container mx-auto p-6">
-        <div class="px-6 py-4 bg-gray-50 border-t flex justify-end gap-3">
+        <div class="px-6 py-4 bg-gray-50 border-t flex flex-wrap justify-end gap-3">
 
             <a href="{{ route('admin.foods.restaurant', $restaurants->id) }}"
-               class="px-5 py-2 bg-green-600 text-white rounded-xl hover:bg-blue-700 transition shadow">
-                غذاهای این رستوران
-            </a>
-            <a href="{{ route('admin.restaurants.order', $restaurants->id) }}"
-               class="px-5 py-2 bg-amber-600 text-white rounded-xl hover:bg-blue-700 transition shadow">
-                سفارش های رستوران
+               class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition shadow-sm">
+                🍽️ غذاها
             </a>
 
+            <a href="{{ route('admin.restaurants.order', $restaurants->id) }}"
+               class="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-xl hover:bg-amber-700 transition shadow-sm">
+                🛒 سفارش‌ها
+            </a>
+
+            <a href="{{ route('admin.restaurants.edit', $restaurants->id) }}"
+               class="flex items-center gap-2 px-4 py-2 bg-yellow-400 text-white rounded-xl hover:bg-yellow-500 transition shadow-sm">
+                ✏️ ویرایش
+            </a>
+
+            <form action="{{ route('admin.restaurants.destroy', $restaurants->id) }}" method="POST" onsubmit="return confirm('آیا مطمئن هستید؟');">
+                @csrf
+                @method('DELETE')
+                <button type="submit"
+                        class="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 transition shadow-sm">
+                    🗑️ حذف
+                </button>
+            </form>
+
         </div>
+
         <h2 class="text-3xl font-extrabold text-gray-800 mb-8 text-center">
             📘 جزئیات رستوران: {{ $restaurants->name }}
         </h2>

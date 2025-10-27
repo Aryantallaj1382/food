@@ -17,8 +17,8 @@
                         <th class="py-3 px-4">موبایل</th>
                         <th class="py-3 px-4">مبلغ کل</th>
                         <th class="py-3 px-4">روش پرداخت</th>
-                        <th class="py-3 px-4">وضعیت پرداخت</th>
                         <th class="py-3 px-4">تاریخ</th>
+                        <th class="py-3 px-4">وضعیت پرداخت</th>
                         <th class="py-3 px-4">عملیات</th>
                     </tr>
                     </thead>
@@ -53,7 +53,7 @@
                                 @endif
                             </td>
                             <td class="py-3 px-4">
-                                <a href="#"
+                                <a href="{{route('admin.restaurants.items',$order->id)}}"
                                    class="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-xs">
                                     جزئیات
                                 </a>

@@ -24,7 +24,11 @@ class Restaurant extends Model
         'send_price',
         'discount_percentage',
         'delivery_radius_km',
-        'discount'
+        'discount',
+        'morning_start',
+        'morning_end',
+        'afternoon_start',
+        'afternoon_end',
     ];
     protected $hidden = [
         'created_at',

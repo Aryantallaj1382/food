@@ -11,11 +11,13 @@
 
     {{-- منو --}}
     <nav class="flex-1 p-4">
+
         <ul class="space-y-2 text-sm">
             <li>
-                <a href="                  class="flex items-center gap-3 px-4 py-3 rounded-lg transition
+                <a href="{{route('admin.restaurants.index')}}"
+                   class="flex items-center gap-3 px-4 py-3 rounded-lg transition
                           hover:bg-blue-50 hover:text-blue-600 font-medium group">
-                    <span class="material-icons text-gray-500 group-hover:text-blue-600">داشبورد</span>
+                    <span class="material-icons text-gray-500 group-hover:text-blue-600">رستوران ها</span>
 
                 </a>
             </li>
@@ -24,10 +26,10 @@
         </ul>
         <ul class="space-y-2 text-sm">
             <li>
-                <a href="#"
+                <a href="{{route('admin.discount-codes.index')}}"
                    class="flex items-center gap-3 px-4 py-3 rounded-lg transition
                           hover:bg-blue-50 hover:text-blue-600 font-medium group">
-                    <span class="material-icons text-gray-500 group-hover:text-blue-600">اساتید</span>
+                    <span class="material-icons text-gray-500 group-hover:text-blue-600">کد تخفیف</span>
 
                 </a>
             </li>
