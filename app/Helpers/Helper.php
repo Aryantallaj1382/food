@@ -155,33 +155,24 @@ function calculateCompatibilityPrecise($id , $user)
 
     return $compatibility;
 }
-function getAddress($id)
+function distanceKm($lat1, $lon1, $lat2, $lon2)
 {
-    $ad = Ad::find($id);
-    return [
-        'region' => $ad?->address?->region,
-        'full_address' => $ad?->address?->full_address,
-        'latitude' => $ad?->address?->latitude,
-        'longitude' => $ad?->address?->longitude,
-        'country' => $ad?->address?->country->name,
-        'city' => $ad?->address?->city->name,
-    ];
+    $earthRadius = 6371; // شعاع زمین به کیلومتر
 
-}
-function getImages($id)
-{
-    $ad = Ad::find($id);
-    return $ad->images->pluck('image_path')->toArray();
-}
-function getSeller($id)
-{
-    $ad = Ad::find($id);
-    return[
-        'name' => $ad->user->first_name.' '.$ad->user->last_name,
-        'profile'=> $ad->user->profile,
-        'duration'=> $ad->user->membership_duration,
-        'ratings'=> $ad->user->ratings_summary,
-        'is_iran'=> $ad->user->is_iran,
-    ];
-}
+    // تبدیل درجه به رادیان
+    $latFrom = deg2rad($lat1);
+    $lonFrom = deg2rad($lon1);
+    $latTo = deg2rad($lat2);
+    $lonTo = deg2rad($lon2);
 
+    $latDelta = $latTo - $latFrom;
+    $lonDelta = $lonTo - $lonFrom;
+
+    $a = sin($latDelta / 2) * sin($latDelta / 2) +
+        cos($latFrom) * cos($latTo) *
+        sin($lonDelta / 2) * sin($lonDelta / 2);
+
+    $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+    return $earthRadius * $c;
+}

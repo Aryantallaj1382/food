@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\Food;
 
 use App\Http\Controllers\Controller;
+use App\Models\Comment;
+use App\Models\CommentLike;
 use App\Models\Restaurant;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -24,14 +26,16 @@ class RestaurantController extends Controller
             'is_open' => $restaurant->is_open,
             'longitude' => $restaurant->longitude,
             'work_time' => $restaurant->work_time,
+            'discount' => $restaurant->discount ,
+            'khosh' => 1000666600 ,
             'bg' =>null,
             'rate' =>4,
-            'min_cart' =>10000,
-            'text' =>'ارسال به خوابگاه به هیچ عنوان نداریم',
+            'min_cart' =>(int)$restaurant->minimum_price,
+            'text' =>'ارسال به خوابگاه نداریم',
             'pay_type' =>['پرداخت در محل','پرداخت آنلاین'],
             'latitude' => $restaurant->latitude,
             'get_ready_minute' => $restaurant->grt_ready_minute,
-            'discount_percentage' => $restaurant->discount_percentage,
+            'discount_percentage' =>(int)$restaurant->discount_percentage,
         ];
         return api_response($return);
     }
@@ -85,6 +89,8 @@ class RestaurantController extends Controller
                                     'a' => $one,
                                     'id' => $option->id,
                                     'name' => $option->name  ,
+                                    'dish' => (int)$option->dish  ,
+                                    'dish_price' => (int)$option->dish_price  ,
                                     'food' => $option->food->name,
                                     'price' => $option->price,
                                     'discountPrice' => $option->discount,
@@ -98,7 +104,6 @@ class RestaurantController extends Controller
             })
             ->values();
 
-        // مرتب‌سازی: کتگوری با آیدی 4 آخر لیست قرار گیرد
         $grouped = $grouped->sortBy(function ($category) {
             return $category['category_id'] == 4 ? 1 : 0;
         })->values();
@@ -126,6 +131,70 @@ class RestaurantController extends Controller
          $serviceTimes,
         ]);
     }
+    public function comments($id)
+    {
+        $user = auth('sanctum')->user();
+        $rest = Restaurant::findOrFail($id);
+        $comments = Comment::whereRelation('order' , 'restaurant_id' , $id)->latest()->paginate();
+        $comments->getCollection()->transform(function ($comment) use ($user , $rest) {
+           return [
+               'id' => $comment->id,
+               'text' => $comment->text,
+               'rating' => $comment->rating,
+               'user' => $comment->user->name,
+               'dislikesCount' => $comment->dislikesCount(),
+               'likesCount' => $comment->likesCount(),
+               'is_liked' => $user
+                   ? $comment->likes->where('user_id', $user->id)->where('is_like', true)->isNotEmpty()
+                   : false,
+               'is_disliked' => $user
+                   ? $comment->likes->where('user_id', $user->id)->where('is_like', false)->isNotEmpty()
+                   : false,
+               'date' => $comment->created_at?->format('d-m-Y'),
+               'items' => $comment->order->items->map(fn($item) => $item->food->name ?? null)->filter()->values(),
+               'replies' => $comment->replies->map(function ($reply) use ($user , $rest) {
+                   return [
+                       'id' => $reply->id,
+                       'text' => $reply->text,
+                       'image' => $rest->image,
+                       'name' => $rest->name,
+                   ];
+               })->values(),
+           ];
+        });
+        return api_response($comments);
 
+    }
+    public function toggle(Request $request, $id)
+    {
+        $request->validate([
+            'is_like' => 'required|boolean',
+        ]);
+
+        $user = auth()->user();
+        $comment = Comment::findOrFail($id);
+
+        $existing = CommentLike::where('comment_id', $comment->id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if ($existing) {
+            if ($existing->is_like == $request->is_like) {
+                $existing->delete();
+                return response()->json(['message' => 'رأی شما حذف شد']);
+            }
+
+            $existing->update(['is_like' => $request->is_like]);
+            return response()->json(['message' => 'رأی شما تغییر یافت']);
+        }
+
+        CommentLike::create([
+            'comment_id' => $comment->id,
+            'user_id' => $user->id,
+            'is_like' => $request->is_like,
+        ]);
+
+        return response()->json(['message' => 'رأی شما ثبت شد']);
+    }
 
 }

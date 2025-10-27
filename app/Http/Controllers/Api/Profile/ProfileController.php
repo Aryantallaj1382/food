@@ -28,14 +28,12 @@ class ProfileController extends Controller
             'first_name' => 'nullable',
             'last_name' => 'nullable',
             'phone' => 'nullable',
-            'password' => 'nullable',
         ]);
         $user = auth()->user();
         $user->update([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'phone' => $request->phone,
-            'password' => bcrypt($request->password),
         ]);
         return api_response([], 'اطلاعات ویرایش شد');
     }

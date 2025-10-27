@@ -21,8 +21,10 @@ class Restaurant extends Model
         'latitude',
         'longitude',
         'is_open',
+        'send_price',
         'discount_percentage',
         'delivery_radius_km',
+        'discount'
     ];
     protected $hidden = [
         'created_at',
@@ -51,7 +53,7 @@ class Restaurant extends Model
     {
         return $value ? url('public/'.$value) : null;
     }
-    protected $appends = ['category_names', 'rate' , 'rate_count' , 'discount_on','pay_type'];
+    protected $appends = ['category_names', 'rate' , 'rate_count' ,'pay_type'];
     protected function categoryNames(): Attribute
     {
         return Attribute::get(function () {
@@ -66,11 +68,6 @@ class Restaurant extends Model
     protected function getRateCountAttribute()
     {
         return 50;
-
-    }
-    protected function getDiscountOnAttribute()
-    {
-        return '10 درصد تخفیف برای خالوژنت';
 
     }
     protected function getPayTypeAttribute()

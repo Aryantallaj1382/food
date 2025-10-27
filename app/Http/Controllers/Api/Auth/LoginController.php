@@ -79,4 +79,13 @@ class LoginController extends Controller
             'mobile' => $user->mobile,
         ], 'ورود موفقیت‌آمیز');
     }
+    public function logout(Request $request)
+    {
+        $request->user()->tokens()->delete();
+
+        return response()->json([
+            'message' => 'با موفقیت خارج شدید'
+        ], 200);
+    }
+
 }

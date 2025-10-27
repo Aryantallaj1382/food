@@ -23,5 +23,12 @@ class FoodOption extends Model
         return $this->price_discount;
 
     }
+    public function getDiscountPercentageAttribute()
+    {
+        if ($this->price && $this->price_discount) {
+            return round(($this->price_discount / $this->price) * 100, 2);
+        }
+        return 0;
+    }
 
 }

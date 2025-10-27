@@ -9,13 +9,7 @@ class Address extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'user_id',
-        'is_main',
-        'address',
-        'latitude',
-        'longitude',
-    ];
+    protected $guarded = [];
     protected $hidden = [
         'created_at',
         'updated_at',

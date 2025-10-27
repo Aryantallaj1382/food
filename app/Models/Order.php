@@ -11,19 +11,29 @@ class Order extends Model
 
     protected $guarded = [];
 
-    // 🧍 ارتباط با کاربر
     public function user()
     {
         return $this->belongsTo(User::class);
     }
-
-    // 🍔 ارتباط با آیتم‌های سفارش
+    public function restaurant()
+    {
+        return $this->belongsTo(Restaurant::class , 'restaurant_id');
+    }
+    public function adress()
+    {
+        return $this->belongsTo(Address::class , 'address_id');
+    }
     public function items()
     {
         return $this->hasMany(OrderItem::class);
     }
+    public function getTotalPriceAttribute()
+    {
+        return $this->items->sum(function ($item) {
+            return $item->price * $item->quantity;
+        });
+    }
 
-    // 💳 بررسی پرداخت
     public function isPaid()
     {
         return $this->payment_status === 'paid';
@@ -34,10 +44,10 @@ class Order extends Model
     {
         return $this->status === 'completed';
     }
-
-    // 💰 جمع مبلغ کل
-    public function getTotalAmountAttribute($value)
+    public function comment()
     {
-        return number_format($value, 0);
+        return $this->hasOne(Comment::class);
     }
+
+
 }

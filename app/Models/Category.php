@@ -12,6 +12,7 @@ class Category extends Model
     protected $fillable = [
         'name',
         'icon',
+        'slug',
     ];
     public function getIconAttribute($value)
     {

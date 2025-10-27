@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Auth\SendOtpController;
 use App\Http\Controllers\Api\Food\RestaurantController;
 use App\Http\Controllers\Api\Order\FinalOrderController;
+use App\Http\Controllers\Api\Profile\UserOrderController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -17,6 +18,7 @@ Route::prefix('auth')->group(function () {
     Route::post('/check', [CheckController::class, 'check']);
     Route::post('/login', [LoginController::class, 'login']);
     Route::post('/register', [RegisterController::class, 'register'])->middleware('auth:sanctum');
+    Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth:sanctum');
     Route::post('/sendOtp', [SendOtpController::class, 'sendOtp']);
 });
 Route::get('/search', [\App\Http\Controllers\Api\Food\SearchController::class,'search']);
@@ -26,6 +28,9 @@ Route::get('/near_restaurant', [\App\Http\Controllers\Api\Profile\nearestRestaur
 Route::prefix('profile')->middleware('auth:sanctum')->controller(\App\Http\Controllers\Api\Profile\ProfileController::class)->group(function () {
     Route::get('/', 'index');
     Route::post('/store', 'store');
+    Route::get('/order', [UserOrderController::class, 'index']);
+    Route::get('/order/{id}', [UserOrderController::class, 'show']);
+    Route::post('/order/comment/{orderId}', [\App\Http\Controllers\Api\Profile\OrderCommentController::class, 'store']);
 
 });
 Route::prefix('profile/address')->middleware('auth:sanctum')->controller(\App\Http\Controllers\Api\Profile\AddressController::class)->group(function () {
@@ -40,4 +45,11 @@ Route::prefix('restaurant')->controller(RestaurantController::class)->group(func
    Route::get('/show/{id}', 'show');
    Route::get('/menu/{id}', 'menu');
    Route::get('/times/{id}', 'times');
+   Route::get('/comments/{id}', 'comments');
+   Route::post('/toggle/{id}', 'toggle')->middleware('auth:sanctum');
+});
+Route::prefix('order')->controller(FinalOrderController::class)->group(function () {
+    Route::post('/send_price', 'send_price');
+    Route::post('/check_discount', 'check_discount')->middleware('auth:sanctum');
+
 });

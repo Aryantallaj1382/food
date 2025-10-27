@@ -47,19 +47,19 @@ class AddressController extends Controller
         $request->validate([
             'address' => 'nullable',
             'id' => 'required',
-            'latitude' => 'nullable',
-            'longitude' => 'nullable',
+            'lat' => 'nullable',
+            'lng' => 'nullable',
         ]);
         $address = Address::where('user_id' , $user->id)->find($request->id);
 
         $address->update([
             'address' => $request->address,
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
+            'latitude' => $request->lat,
+            'longitude' => $request->lng,
             'is_main' => false,
 
         ]);
-        return api_response([], 'با موفقیت ویراسش شد');
+        return api_response([], 'با موفقیت ویرایش شد');
     }
     public function update_is_main(Request $request)
     {
@@ -72,7 +72,7 @@ class AddressController extends Controller
         $address->update([
             'is_main' => true,
         ]);
-        return api_response([], 'با موفقیت ویراسش شد');
+        return api_response( $request->id, 'با موفقیت ویرایش شد');
     }
 
 }

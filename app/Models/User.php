@@ -45,6 +45,7 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
+
     protected function casts(): array
     {
         return [
@@ -56,9 +57,19 @@ class User extends Authenticatable
     {
         return $this->hasMany(Address::class);
     }
+    public function commentLikes()
+    {
+        return $this->hasMany(CommentLike::class);
+    }
+
     public function wallet()
     {
         return $this->hasOne(Wallet::class);
+    }
+    public  function getNameAttribute()
+    {
+        return $this->first_name . ' ' . $this->last_name;
+
     }
 
 }

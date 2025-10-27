@@ -21,7 +21,7 @@ class Food extends Model
         'created_at',
         'updated_at',
     ];
-    protected $appends = ['restaurant'];
+    protected $appends = ['restaurant_name'];
 
     public function getRestaurantNameAttribute()
     {
