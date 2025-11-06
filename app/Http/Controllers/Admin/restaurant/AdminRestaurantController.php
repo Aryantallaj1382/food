@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Restaurant;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class AdminRestaurantController extends Controller
@@ -32,20 +33,24 @@ class AdminRestaurantController extends Controller
     public function create()
     {
         $categories = Category::select('id', 'name')->get();
-        return view('restaurant.create', compact('categories'));
+        $users = User::select(['id', 'first_name', 'mobile'])->get(); // 👈 لیست کاربران
+
+        return view('restaurant.create', compact('categories', 'users'));
     }
+
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'user_id' => 'required|exists:users,id',
             'address' => 'nullable|string|max:500',
             'grt_ready_minute' => 'nullable|integer|min:0',
             'sending_way' => 'nullable|string|max:255',
             'minimum_price' => 'nullable|numeric|min:0',
             'work_time' => 'nullable|string|max:255',
-            'latitude' => 'nullable|numeric',
-            'longitude' => 'nullable|numeric',
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
             'is_open' => 'nullable|boolean',
             'send_price' => 'nullable|numeric|min:0',
             'discount_percentage' => 'nullable|numeric|min:0|max:100',
@@ -139,7 +144,8 @@ class AdminRestaurantController extends Controller
 
     {
         $orders = OrderItem::where('order_id', $id)->paginate();
-        return view('restaurant.items', compact('orders'));
+        $order = Order::find($id);
+        return view('restaurant.items', compact(['orders' , 'order']));
     }
     public function map()
     {

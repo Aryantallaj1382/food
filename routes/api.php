@@ -55,3 +55,6 @@ Route::prefix('order')->controller(FinalOrderController::class)->group(function 
     Route::post('/store', 'store')->middleware('auth:sanctum');
 
 });
+Route::get('/test', [FinalOrderController::class, 'test']);
+//Route::post('/introduction', [\App\Http\Controllers\Api\RestaurantIntroductionController::class, 'store']);
+

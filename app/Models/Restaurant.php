@@ -21,6 +21,7 @@ class Restaurant extends Model
         'latitude',
         'longitude',
         'is_open',
+        'user_id',
         'send_price',
         'discount_percentage',
         'delivery_radius_km',
@@ -38,7 +39,10 @@ class Restaurant extends Model
         'latitude' => 'float',
         'longitude' => 'float',
     ];
-
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
     // اگر جدول مرتبط دیگری داری (مثل service_times) اینجا رابطه‌ها رو می‌سازی
     public function serviceTimes()
     {

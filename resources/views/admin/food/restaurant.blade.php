@@ -14,40 +14,75 @@
                 <button @click="show = false" class="text-green-700 hover:text-green-900 font-bold">&times;</button>
             </div>
         @endif
-        <div class="flex justify-start md:justify-end">
-            {{--            <a href="{{ route('admin.webinar.create') }}"--}}
-            {{--               class="bg-green-500 hover:bg-green-600 text-white p-2 rounded">--}}
-            {{--                ایجاد کلاس جدید--}}
-            {{--            </a>--}}
-        </div>
-        <h2 class="text-2xl font-bold text-gray-700 mb-6">  لیست غذا های {{ $rest->name }} </h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            @forelse($foods as $food)
-                <div class="bg-white rounded-xl shadow hover:shadow-lg transition overflow-hidden">
-                    <!-- عکس کلاس -->
-                    <img src="{{ $food->image ?? asset('images/default-class.jpg') }}"
-                         alt="{{ $food->name }}"
-                         class="w-full h-40 object-cover">
 
-                    <!-- اطلاعات -->
-                    <div class="p-1">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-2">
+        <!-- دکمه اضافه کردن غذا -->
+        <div class="flex justify-start md:justify-end mb-6">
+            <a href="{{ route('admin.foods.create', $rest->id) }}"
+               class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow transition">
+                اضافه کردن غذای جدید
+            </a>
+        </div>
+
+        <h2 class="text-2xl font-bold text-gray-700 mb-6">لیست غذاهای {{ $rest->name }}</h2>
+
+        <!-- جدول غذاها -->
+        <div class="overflow-x-auto bg-white rounded-lg shadow">
+            <table class="min-w-full table-auto border-collapse">
+                <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">تصویر</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">نام غذا</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">قیمت</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">توضیحات</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">عملیات</th>
+                </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                @forelse($foods as $food)
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <img src="{{ $food->image ?? asset('images/default-food.jpg') }}"
+                                 alt="{{ $food->name }}"
+                                 class="w-16 h-16 object-cover rounded-lg shadow-sm">
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             {{ $food->name }}
-                        </h3>
-
-
-
-                    </div>
-                </div>
-            @empty
-                <p class="col-span-4 text-center text-gray-500">هیچ غذایی موجود نیست.</p>
-            @endforelse
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                            {{ number_format($food->price) }} تومان
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
+                            {{ Str::limit($food->description, 50) }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2 space-x-reverse">
+                            <a href="{{route('admin.foods.edit', $food->id)}}"
+                               class="text-indigo-600 hover:text-indigo-900">ویرایش</a>
+                            <form action="#"
+                                  method="POST" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                        onclick="return confirm('آیا از حذف این غذا مطمئن هستید؟')"
+                                        class="text-red-600 hover:text-red-900">
+                                    حذف
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                            هیچ غذایی برای این رستوران ثبت نشده است.
+                        </td>
+                    </tr>
+                @endforelse
+                </tbody>
+            </table>
         </div>
 
+        <!-- صفحه‌بندی -->
         <div class="mt-6">
-
             {{ $foods->links() }}
         </div>
-
     </div>
 @endsection

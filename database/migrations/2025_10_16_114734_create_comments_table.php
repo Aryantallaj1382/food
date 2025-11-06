@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('comments', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('order_id')->constrained()->onDelete('cascade');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->text('text'); // متن کامنت
-            $table->unsignedTinyInteger('rating'); // امتیاز از 1 تا 5
-            $table->timestamps();
-        });
+            Schema::create('comments', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('order_id')->constrained()->onDelete('cascade');
+                $table->foreignId('user_id')->constrained()->onDelete('cascade');
+                $table->text('text'); // متن کامنت
+                $table->unsignedTinyInteger('rating'); // امتیاز از 1 تا 5
+                $table->timestamps();
+            });
     }
 
     /**

@@ -14,6 +14,7 @@
     @push('scripts')
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     @endpush
+    <script src="//unpkg.com/alpinejs" defer></script>
 
     <!-- Tom-Select CSS & JS -->
     <link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.default.min.css" rel="stylesheet">

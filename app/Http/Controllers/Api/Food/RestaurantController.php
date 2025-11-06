@@ -31,7 +31,7 @@ class RestaurantController extends Controller
             'longitude' => $restaurant->longitude,
             'work_time' => $restaurant->work_time,
             'discount' => $restaurant->discount ,
-            'khosh' => 1000666600 ,
+            'khosh' => 100 ,
             'bg' =>null,
             'rate' =>4,
             'min_cart' =>(int)$restaurant->minimum_price,
@@ -204,7 +204,7 @@ class RestaurantController extends Controller
 
     public function getAvailableTimes($restaurantId)
     {
-        $restaurant = Restaurant::findOrFail($restaurantId);
+            $restaurant = Restaurant::findOrFail($restaurantId);
 
         $now = Carbon::now('Asia/Tehran');           // ساعت الان تهران
         $startFrom = $now->copy()->addHours(2);      // دو ساعت بعد از الان

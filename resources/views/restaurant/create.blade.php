@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-2xl p-8 mt-6">
+    <div class="max-w-4xl mx-auto gri bg-white shadow-lg rounded-2xl p-8 mt-6">
         <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center border-b pb-3">🍽️ ثبت رستوران جدید</h2>
 
         <form action="{{ route('admin.restaurants.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
@@ -13,6 +13,18 @@
                 <input type="text" name="name" id="name" required
                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none">
             </div>
+            <!-- انتخاب کاربر -->
+            <div>
+                <label for="user_id" class="block text-gray-700 font-medium mb-2">انتخاب کاربر</label>
+                <select name="user_id" id="user_id" required
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none">
+                    <option value="">انتخاب کنید</option>
+                    @foreach($users as $user)
+                        <option value="{{ $user->id }}">{{ $user->first_name }} ({{ $user->mobile ?? 'بدون شماره' }})</option>
+                    @endforeach
+                </select>
+            </div>
+
 
             <!-- آدرس -->
             <div>

@@ -42,6 +42,8 @@ if (!function_exists('generateOrderCode')) {
 }
 
 use Illuminate\Pagination\LengthAwarePaginator;
+use IPPanel\Client;
+use Morilog\Jalali\Jalalian;
 
 function api_response(mixed $data = [], string $message = '', int $status = 200, array $append = []): JsonResponse
 {
@@ -175,4 +177,25 @@ function distanceKm($lat1, $lon1, $lat2, $lon2)
     $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
 
     return $earthRadius * $c;
+}
+function sms($pattern , $mobile , $data )
+{
+            (new Client(config('app.sms_panel_apikey')))
+            ->sendPattern(
+                $pattern,
+                '3000505',
+                $mobile,
+                $data
+            );
+}
+
+function ui_code($orderId  , $userId)
+{
+    $microTime = microtime(true);
+    $milliseconds = (int)($microTime * 1000);
+
+    $uniqueId = $milliseconds . '-' . $orderId . '-' . $userId;
+
+    return $uniqueId;
+
 }

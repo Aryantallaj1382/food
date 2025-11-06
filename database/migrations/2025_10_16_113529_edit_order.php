@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
+        Schema::table('ordersController', function (Blueprint $table) {
             $table->string('send_price')->nullable();
         });
     }

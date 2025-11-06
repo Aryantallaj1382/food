@@ -2,18 +2,21 @@
 
 namespace App\Http\Controllers\Api\Order;
 
+use App\Helpers\ParsianPayment;
 use App\Http\Controllers\Controller;
 use App\Models\Address;
 use App\Models\DiscountCode;
 use App\Models\FoodOption;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\Restaurant;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use IPPanel\Client;
+use Morilog\Jalali\Jalalian;
 
 class FinalOrderController extends Controller
 {
-
 
     public function store(Request $request)
     {
@@ -24,14 +27,14 @@ class FinalOrderController extends Controller
             'mobile' => 'required|string',
             'gateway' => 'nullable|string',
             'notes' => 'nullable|string',
-            'time' => 'required|date',
+            'time' => 'nullable',
             'is_wallet' => 'required',
             'payment_method' => 'required|string',
             'sending_method' => 'required|string',
             'restaurantId' => 'required|exists:restaurants,id',
             'address_id' => 'required|exists:addresses,id',
             'items' => 'required|array|min:1',
-            'items.*.id' => 'required|exists:food,id',
+            'items.*.id' => 'required|exists:foods,id',
             'items.*.quantity' => 'required|integer|min:1',
         ]);
         $rest = Restaurant::find($request->restaurantId);
@@ -48,27 +51,34 @@ class FinalOrderController extends Controller
             'restaurant_discount' => $request->restaurant_discount,
             'phone' => $request->phone,
             'mobile' => $request->mobile,
-            'time' => $request->time,
+            'time' => $request->time ?? 'now',
             'send_price' => $request->send_price,
             'sending_method' => $request->sending_method,
             'notes' => $request->notes,
         ]);
-
         $foodIds = collect($request->items)->pluck('id')->toArray();
-        $foods = FoodOption::whereIn('id', $foodIds)->get(['id', 'price']);
-        $totalWithoutDiscount = 0;
+        $foods = FoodOption::whereIn('id', $foodIds)->get();
+        $total = 0;
+
         foreach ($request->items as $item) {
             $food = $foods->firstWhere('id', $item['id']);
             if (!$food) continue;
 
-            $lineTotal = $food->price_discount * $item['quantity'];
-            $totalWithoutDiscount += $lineTotal;
+            $lineTotal = $food->price_order * $item['quantity'];
+            $dishCount = 0;
+            if ($food->dish && $food->dish_price) {
+                $dishCount = floor($item['quantity'] / $food->dish);
+                $dishCount = max(1, $dishCount);
+                $lineTotal += $dishCount * $food->dish_price;
+            }
+            $total += $lineTotal;
+
 
             $order->items()->create([
                 'food_option_id' => $item['id'],
                 'quantity' => $item['quantity'],
                 'price' => $food->price,
-                'dish_quantity' => $item['dish_quantity'] ?? null,
+                'dish_quantity' => $dishCount,
             ]);
         }
         $discount = 0;
@@ -76,46 +86,100 @@ class FinalOrderController extends Controller
         {
             $distance = distanceKm($rest->latitude, $rest->longitude, $address->latitude, $address->longitude);
             $send_price = $rest->send_price * $distance;
-            $totalWithoutDiscount += $send_price;
+            $total += $send_price;
+        }
 
-        }
-        // اعمال تخفیف رستوران
-        $total = $totalWithoutDiscount;
-        if ($request->restaurant_discount == true)
+        if ($request->restaurant_discount === true)
         {
-            $rest_discount = ($rest->discount * $totalWithoutDiscount)/100;
-            $total = $totalWithoutDiscount - $rest_discount;
+            $rest_discount = ($rest->discount_percentage * $total)/100;
+            $total = $total - $rest_discount;
         }
-//        elseif ($request->discount_code == true)
-//        {
-//            //
-//        }
+        elseif (!empty($request->discount_code))
+        {
+            $discount  =  DiscountCode::where('name', $request->discount_code)->first();
+            if (!$discount)
+            {
+                return api_response([],'کد تخفیف اشتباه است', 400);
+            }
+            if ($discount->valid_until < Carbon::now())
+            {
+                return api_response([],'کد منقضی شده', 400);
+            }
+            if($discount->restaurant_id != null && $discount->restaurant_id != $request->restaurantId)
+            {
+                return api_response([],'این کد برای این مجموعه قابل استفاده نیست', 400 );
+            }
+            if ($discount->max_discount < $total)
+            {
+                return api_response([],'حداکثر قیمت برای این کد بزرگ تر از حد مجاز است' , 400 );
+            }
+            if ($discount->one_time_use == 1)
+            {
+                $order = Order::where('user_id' , $user->id)->where('payment_status' , 'paid')->where('discount_code' , $discount->name)->exists();
+                if ($order)
+                {
+                    return api_response([], 'از این کد تخفیف قبلا استفاده کردید' ,400);
+                }
+            }
+
+            $total = $total - ($total * $discount->percentage/100);
+            return $total;
+        }
+
 
 
         if ($request->is_wallet == true)
         {
             $balance = $user->wallet->balance;
-            $new_total = $balance - $total;
-            if ($new_total < 0)
+            if ($total < $balance)
             {
-                //
+                $new_balance =  $balance - $total;
+                $user->wallet->balance = $new_balance;
+                $user->wallet->save();
+                $order->update(['payment_status' => 'paid', 'status' => 'processing' , 'total_amount' => $total]);
+                Payment::create([
+                    'user_id' => $user->id,
+                    'order_id' => $order->id,
+                    'amount' => $total,
+                    'payment_method' => 'wallet',
+                    'gateway' => $request->gateway,
+                ]);
             }
             else{
-                //
+                $new_balance = $total - $balance;
+                $user->wallet->balance = 0;
+                $user->wallet->save();
+                Payment::create([
+                    'user_id' => $user->id,
+                    'order_id' => $order->id,
+                    'amount' => $total,
+                    'payment_method' => 'both',
+                    'gateway' => $request->gateway,
+                ]);
+                $x = ui_code($order->id , $user->id);
+                $a = new ParsianPayment();
+                $b = $a->pay($x , (int)$total , 'https://api.testghazaresan.ir?order_id=' . $order->id. '&uni=' . $x );
+                return api_response($b,'سفارش با موفقیت ثبت شد.');
             }
 
         }
         if ($request->is_wallet == false)
         {
-            //
+            $x = ui_code($order->id , $user->id);
+            $a = new ParsianPayment();
+            $b = $a->pay($x , (int)$total , 'https://api.testghazaresan.ir?order_id=' . $order->id. '&uni=' . $x );
+            return api_response($b,'سفارش با موفقیت ثبت شد.');
         }
-
+//        $data = ['name' => $order->user->name,
+//            'date' => Jalalian::now()->format('Y/m/d H:i'),
+//            'restaurant' => $order->restaurant->name,
+//        ];
+//        sms('9by4knaewe6rvmo' ,'09902866182' , $data );
 
         return api_response([
-            'message' => 'سفارش با موفقیت ثبت شد.',
             'order_id' => $order->id,
 
-        ]);
+        ],'سفارش با موفقیت ثبت شد.');
     }
 
     public function send_price(Request $request)
@@ -149,6 +213,7 @@ class FinalOrderController extends Controller
         {
             return api_response([],'حداکثر قیمت برای این کد بزرگ تر از حد مجاز است' , 400 );
         }
+
         if ($discount->one_time_use == 1)
         {
             $order = Order::where('user_id' , $user->id)->where('payment_status' , 'paid')->where('discount_code' , $discount->name)->exists();
@@ -161,6 +226,14 @@ class FinalOrderController extends Controller
             'code' =>$discount->name,
             'percentage' => (int)$discount->percentage,
         ] , 'تخفیف با موفقیت اعمال شد');
+
+    }
+    public function test()
+    {
+        $x = ui_code(1 , 5);
+//        $a = new ParsianPayment();
+//        $b = $a->pay(15 , 10000 , 'https://api.testghazaresan.ir/' );
+        return api_response($x);
 
     }
 }

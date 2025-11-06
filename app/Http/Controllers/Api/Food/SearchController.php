@@ -13,37 +13,59 @@ class SearchController extends Controller
     {
         $search = $request->input('search');
         $slug = $request->input('category');
+        $khosh = $request->input('khosh');
+        $taem = $request->input('taem');
+        $rate = $request->input('rate');
 
         $restaurants = Restaurant::query()
-            ->when($search, function($query, $search) {
-                $query->select('restaurants.*')
-                    ->selectRaw("MATCH(name) AGAINST(? IN NATURAL LANGUAGE MODE) AS relevance", [$search])
-                    ->whereRaw("MATCH(name) AGAINST(? IN NATURAL LANGUAGE MODE)", [$search])
+            ->select('restaurants.*') // همیشه انتخاب کن
+            ->when($search, function ($query, $search) {
+                $query->selectRaw(
+                    'MATCH(restaurants.name) AGAINST(? IN NATURAL LANGUAGE MODE) AS relevance',
+                    [$search]
+                )
+                    ->whereRaw(
+                        'MATCH(restaurants.name) AGAINST(? IN NATURAL LANGUAGE MODE)',
+                        [$search]
+                    )
                     ->orderByDesc('relevance');
             })
-            ->when($slug, function($query, $slug) {
-                $query->whereHas('categories', function($q) use ($slug) {
+            ->when($slug, function ($query, $slug) {
+                $query->whereHas('categories', function ($q) use ($slug) {
                     $q->where('slug', $slug);
                 });
+            })
+            ->when($taem, function ($query) {
+                $query->whereNotNull('discount');
             })
             ->take(10)
             ->get();
 
         $foods = Food::with('restaurant.categories')
-            ->when($search, function($query, $search) {
-                $query->select('foods.*')
-                    ->selectRaw("MATCH(name, description) AGAINST(? IN NATURAL LANGUAGE MODE) AS relevance", [$search])
-                    ->whereRaw("MATCH(name, description) AGAINST(? IN NATURAL LANGUAGE MODE)", [$search])
+            ->select('foods.*') // همیشه انتخاب کن
+            ->when($search, function ($query, $search) {
+                $query->selectRaw(
+                    "MATCH(foods.name, foods.description) AGAINST(? IN NATURAL LANGUAGE MODE) AS relevance",
+                    [$search]
+                )
+                    ->whereRaw(
+                        "MATCH(foods.name, foods.description) AGAINST(? IN NATURAL LANGUAGE MODE)",
+                        [$search]
+                    )
                     ->orderByDesc('relevance');
             })
-            ->when($slug, function($query, $slug) {
-                $query->whereHas('restaurant.categories', function($q) use ($slug) {
+            ->when($slug, function ($query, $slug) {
+                $query->whereHas('restaurant.categories', function ($q) use ($slug) {
                     $q->where('slug', $slug);
+                });
+            })
+            ->when($khosh, function ($query, $khosh) {
+                $query->whereHas('options', function ($q) {
+                    $q->whereColumn('price_discount', '<=', 'price');
                 });
             })
             ->take(10)
             ->get();
-
 
         $f = $foods->map(function ($item) {
             return [

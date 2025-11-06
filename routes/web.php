@@ -1,6 +1,9 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminCategoryController;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminRestaurantIntroductionController;
+use App\Http\Controllers\Admin\CommentController;
 use App\Http\Controllers\Admin\discount\AdminDiscountCodeController;
 use App\Http\Controllers\Admin\food\AdminFoodController;
 use App\Http\Controllers\Admin\restaurant\AdminRestaurantController;
@@ -39,13 +42,44 @@ Route::prefix('admin')->name('admin.')->group(function () {
     });
     Route::prefix('foods')->name('foods.')->controller(AdminFoodController::class)->group(function () {
         route::get('/restaurant/{id}','restaurant')->name('restaurant');
+        Route::get('/restaurant/{restaurant_id}/food/create',  'create')->name('create');
+        Route::post('/restaurant/{restaurant_id}/food', 'store')->name('store');
+        Route::get('/restaurant`/food/{id}/edit',  'edit')->name('edit');
+        Route::put('/restaurant/{restaurant_id}/food/{id}',  'update')->name('update');
+        // ... سایر روت‌ها
+    });
+    Route::prefix('users')->name('users.')->controller(\App\Http\Controllers\Admin\User\AdminUserController::class)->group(function () {
+        route::get('/','index')->name('index');
+        route::delete('/{id}','destroy')->name('delete');
+        route::get('/show/{id}','show')->name('show');
+        Route::get('/users/create', 'create')->name('create');
+        Route::post('/users', 'store')->name('store');
     });
 
 
 
+    Route::prefix('restaurant-introductions')->group(function () {
+        Route::get('', [AdminRestaurantIntroductionController::class, 'index'])->name('restaurant_introductions.index');
+        Route::delete('{id}', [AdminRestaurantIntroductionController::class, 'destroy'])->name('restaurant_introductions.destroy');
+    });
+    Route::prefix('order')->name('orders.')->controller(\App\Http\Controllers\Admin\order\ordersController::class)->group(function () {
+        route::get('/','index')->name('index');
+        route::delete('/{id}','destroy')->name('delete');
+        route::get('/show/{id}','show')->name('show');
+
+    });
 
 
+    Route::get('/comments', [CommentController::class, 'index'])->name('comments.index');
 
-
+    Route::prefix('sliders')->name('sliders.')->controller(\App\Http\Controllers\Admin\SliderController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('//create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{slider}/edit', 'edit')->name('edit');
+        Route::put('/{slider}', 'update')->name('update');
+        Route::delete('/{slider}', 'destroy')->name('destroy');
+    });
+    Route::resource('categories', ADminCategoryController::class)->only(['index', 'create', 'store', 'destroy']);
 
 });

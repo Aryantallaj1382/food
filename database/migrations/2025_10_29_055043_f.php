@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('ordersController', function (Blueprint $table) {
-            $table->foreignId('restaurant_id')->after('id')->constrained('restaurants')->onDelete('cascade');
-
+        Schema::table('restaurants', function (Blueprint $table) {
+            $table->foreignId('user_id')
+                ->after('id') // یا هر ستونی که خواستی
+                ->constrained('users')
+                ->onDelete('cascade');
         });
     }
 

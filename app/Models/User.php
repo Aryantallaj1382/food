@@ -29,7 +29,10 @@ class User extends Authenticatable
         'sms_sent_tries',
         'sms_sent_code',
     ];
-
+    public function restaurants()
+    {
+        return $this->hasMany(Restaurant::class);
+    }
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -60,6 +63,10 @@ class User extends Authenticatable
     public function commentLikes()
     {
         return $this->hasMany(CommentLike::class);
+    }
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
     }
 
     public function wallet()

@@ -60,7 +60,7 @@ class SendOtpController extends Controller
             if (!empty($data['mobile'])) {
                 (new Client(config('app.sms_panel_apikey')))
                     ->sendPattern(
-                        '5kybw03wwfjfn3v',
+                        'hjn2b6wewed478q',
                         '3000505',
                         $data['mobile'],
                         ['code' => $code]
@@ -68,6 +68,7 @@ class SendOtpController extends Controller
                 $responseMessages['message'] = 'کد تایید به شماره موبایل ارسال شد.';
 
             }
+
 
 
         } catch (Throwable $e) {
