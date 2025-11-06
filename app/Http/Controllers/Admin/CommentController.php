@@ -18,5 +18,4 @@ class CommentController extends Controller
         return view('admin.comments.index', compact('comments'));
     }
 
-
 }
