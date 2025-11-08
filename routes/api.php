@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Auth\SendOtpController;
 use App\Http\Controllers\Api\Food\RestaurantController;
 use App\Http\Controllers\Api\Order\FinalOrderController;
 use App\Http\Controllers\Api\Profile\UserOrderController;
+use App\Http\Controllers\Api\Restaurant\RestOrderController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -58,3 +59,28 @@ Route::prefix('order')->controller(FinalOrderController::class)->group(function 
 Route::get('/test', [FinalOrderController::class, 'test']);
 //Route::post('/introduction', [\App\Http\Controllers\Api\RestaurantIntroductionController::class, 'store']);
 
+
+
+Route::prefix('restaurant')->group(function () {
+
+
+    Route::prefix('order')->controller(RestOrderController::class)->group(function () {
+        Route::get('/order', 'index_order');
+        Route::get('/show_order', 'show_order');
+
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+});
