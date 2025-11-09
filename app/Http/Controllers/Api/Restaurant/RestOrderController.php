@@ -7,6 +7,8 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Morilog\Jalali\CalendarUtils;
+use Morilog\Jalali\Jalalian;
 
 class RestOrderController extends Controller
 {
@@ -21,7 +23,6 @@ class RestOrderController extends Controller
         $mobile= $request->input('mobile');
         $from_date = $request->input('from_date');
         $to_date = $request->input('to_date');
-
         $status= $request->input('status');
         $payment_method = $request->input('payment_method');
 
@@ -48,26 +49,32 @@ class RestOrderController extends Controller
         if ($payment_method) {
             $query->where('payment_method', $payment_method);
         }
-
         if ($from_date && $to_date) {
-            $query->whereBetween('created_at', [$from_date . ' 00:00:00', $to_date . ' 23:59:59']);
+
+            $fromArray = CalendarUtils::toGregorian(...explode('/', $from_date));
+            $toArray   = CalendarUtils::toGregorian(...explode('/', $to_date));
+
+            $fromGregorian = $fromArray[0] . '-' . $fromArray[1] . '-' . $fromArray[2] . ' 00:00:00';
+            $toGregorian   = $toArray[0] . '-' . $toArray[1] . '-' . $toArray[2] . ' 23:59:59';
+
+            $query->whereBetween('created_at', [$fromGregorian, $toGregorian]);
         }
 
         $orders = $query->whereRelation('user' , 'id' , $user->id)->where('payment_status' , 'paid')->latest()->paginate(15);
 
 
         $orders->getCollection()->transform(function($order){
+
             return [
                 'id' => $order->id,
-                'first_name' => $order->user?->first_name,
-                'last_name' => $order->user?->last_name,
-//                'restaurant' => $order->restaurant->name,
-                'created' => $order->created_at?->format('d-m-Y'),
+                'full_name' => $order->user->name,
+                'created' => $order->created_at ? Jalalian::fromCarbon($order->created_at)->format('Y/m/d H:i') : null,
                 'payment_method' => $order->payment_method,
                 'total_amount' => $order->total_amount,
-
                 'sending_method' => $order->sending_method,
                 'status' => $order->status,
+
+
 
             ];
         });
@@ -75,11 +82,25 @@ class RestOrderController extends Controller
         return api_response($orders, 'داده ها با موفقیت ارسال شدند');
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
     public function show_order($id){
 
         $order=Order::find($id);
 
         $items = OrderItem::where('order_id', $order->id)->get();
+        $price_item = OrderItem::where('order_id', $order->id)->sum('price');
 
 
         if (!$order) {
@@ -87,34 +108,41 @@ class RestOrderController extends Controller
                 'message' => 'سفارش مورد نظر یافت نشد'
             ], 404);
         }
+        $firstOrder = Order::where('user_id', $order->user_id)
+            ->orderBy('created_at', 'asc')
+            ->first();
+
 
 
         $data = [
             'id' => $id,
             'price'=>$order->price,
-            'first_name' => $order->user?->first_name,
-            'last_name' => $order->user?->last_name,
-            'created' => $order->created_at?->format('d-m-Y'),
+            'full_name'=>$order->user->name,
+            'created' => $order->created_at ? Jalalian::fromCarbon($order->created_at)->format('Y/m/d H:i') : null,
             'mobile'=>$order->mobile,
             'address'=>$order->adress?->address,
             'notes'=>$order->notes,
-            'send_price'=>$order->send_price,
             'time'=>$order->time,
-            'payment_method'=>$order->payment_method,
+
+            'admin_note'=>'این توضیح ادمین است',
+
+            'send_price'=>$order->send_price,
+            'discount' => 5,
+            'total_price'=>$price_item,
             'total_amount'=>$order->total_amount,
 
-
-
+            'payment_method'=>$order->payment_method,
+            'message' => $firstOrder && $firstOrder->id === $order->id
+                ? 'این اولین سفارش شما بوده 🎉'
+                : null,
             'items'=>$items->map(function($item){
                 return [
                     'id' => $item->id,
                     'price' => $item->price,
                     'quantity' => $item->quantity,
                     'name' => $item->option?->food?->name .' '.$item?->option?->name,
-                    'dish_quantity'=>$item->dish_quantity,
                     'dish'=>$item->option?->dish,
                     'dish_price'=>$item->option?->dish_price,
-
 
                 ];
             }),

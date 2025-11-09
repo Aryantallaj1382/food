@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Auth\SendOtpController;
 use App\Http\Controllers\Api\Food\RestaurantController;
 use App\Http\Controllers\Api\Order\FinalOrderController;
 use App\Http\Controllers\Api\Profile\UserOrderController;
+use App\Http\Controllers\Api\Restaurant\ProductsMenuController;
 use App\Http\Controllers\Api\Restaurant\RestOrderController;
 use Illuminate\Support\Facades\Route;
 
@@ -67,8 +68,15 @@ Route::prefix('restaurant')->group(function () {
     Route::prefix('/order')->controller(RestOrderController::class)->group(function () {
         Route::get('/index_order', 'index_order');
         Route::get('/show_order/{id}', 'show_order');
-
     });
+    Route::prefix('/products')->controller(ProductsMenuController::class)->group(function () {
+        Route::get('/index_food', 'index_food');
+    });
+    Route::prefix('/Transaction')->controller(ProductsMenuController::class)->group(function () {
+        Route::get('/filterPayment', 'filterPayment');
+    });
+
+
 
 
 
