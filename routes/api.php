@@ -64,9 +64,9 @@ Route::get('/test', [FinalOrderController::class, 'test']);
 Route::prefix('restaurant')->group(function () {
 
 
-    Route::prefix('order')->controller(RestOrderController::class)->group(function () {
-        Route::get('/order', 'index_order');
-        Route::get('/show_order', 'show_order');
+    Route::prefix('/order')->controller(RestOrderController::class)->group(function () {
+        Route::get('/index_order', 'index_order');
+        Route::get('/show_order/{id}', 'show_order');
 
     });
 

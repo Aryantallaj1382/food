@@ -77,7 +77,7 @@ class RestOrderController extends Controller
 
     public function show_order($id){
 
-        $order=Order::with('user','restaurant','food','options','items')->find($id);
+        $order=Order::find($id);
 
         $items = OrderItem::where('order_id', $order->id)->get();
 
@@ -91,24 +91,30 @@ class RestOrderController extends Controller
 
         $data = [
             'id' => $id,
-            'price'=>$order->total_amount,
+            'price'=>$order->price,
             'first_name' => $order->user?->first_name,
             'last_name' => $order->user?->last_name,
             'created' => $order->created_at?->format('d-m-Y'),
             'mobile'=>$order->mobile,
             'address'=>$order->adress?->address,
             'notes'=>$order->notes,
+            'send_price'=>$order->send_price,
+            'time'=>$order->time,
+            'payment_method'=>$order->payment_method,
+            'total_amount'=>$order->total_amount,
+
 
 
             'items'=>$items->map(function($item){
                 return [
                     'id' => $item->id,
-
                     'price' => $item->price,
                     'quantity' => $item->quantity,
-                    'name' => $item->options->food->name,
-                    'options_name' => $item->options->name,
+                    'name' => $item->option?->food?->name .' '.$item?->option?->name,
                     'dish_quantity'=>$item->dish_quantity,
+                    'dish'=>$item->option?->dish,
+                    'dish_price'=>$item->option?->dish_price,
+
 
                 ];
             }),
@@ -120,6 +126,7 @@ class RestOrderController extends Controller
 
 
     }
+
 
 
 
