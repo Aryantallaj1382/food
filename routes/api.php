@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Food\RestaurantController;
 use App\Http\Controllers\Api\Order\FinalOrderController;
 use App\Http\Controllers\Api\Profile\UserOrderController;
 use App\Http\Controllers\Api\Restaurant\ProductsMenuController;
+use App\Http\Controllers\Api\Restaurant\RestCommentController;
 use App\Http\Controllers\Api\Restaurant\RestOrderController;
 use Illuminate\Support\Facades\Route;
 
@@ -63,19 +64,33 @@ Route::get('/test', [FinalOrderController::class, 'test']);
 
 
 Route::prefix('restaurant')->group(function () {
-
-
     Route::prefix('/order')->controller(RestOrderController::class)->group(function () {
         Route::get('/index_order', 'index_order');
         Route::get('/show_order/{id}', 'show_order');
     });
     Route::prefix('/products')->controller(ProductsMenuController::class)->group(function () {
-        Route::get('/index_food', 'index_food');
+        Route::get('/index_food', 'index');
+        Route::get('/categories', 'categories');
+        Route::get('/show/{id}', 'show');
+        Route::post('/change_status', 'change_status');
     });
     Route::prefix('/Transaction')->controller(ProductsMenuController::class)->group(function () {
         Route::get('/filterPayment', 'filterPayment');
     });
+    Route::prefix('/comments')->controller(RestCommentController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::post('/reply/{id}', 'reply');
+    });
 
+    Route::prefix('/report')->controller(\App\Http\Controllers\Api\Restaurant\RestReportController::class)->group(function () {
+        Route::get('/', 'index');
+    });
+
+    Route::prefix('/panel')->controller(\App\Http\Controllers\Api\Restaurant\RestPanelController::class)->group(function () {
+        Route::post('/pass', 'changePassword');
+        Route::post('/open', 'open');
+        Route::get('/', 'panel');
+    });
 
 
 

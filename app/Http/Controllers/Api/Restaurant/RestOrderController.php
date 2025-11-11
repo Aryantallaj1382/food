@@ -25,12 +25,7 @@ class RestOrderController extends Controller
         $to_date = $request->input('to_date');
         $status= $request->input('status');
         $payment_method = $request->input('payment_method');
-
-
-        // کوئری پایه
         $query = Order::with('user','restaurant');
-
-        // فیلتر کاربر
         if ($user_name) {
             $query->whereHas('user', function($q) use ($user_name) {
                 $q->where('first_name', 'like', '%' . $user_name . '%')
@@ -59,12 +54,8 @@ class RestOrderController extends Controller
 
             $query->whereBetween('created_at', [$fromGregorian, $toGregorian]);
         }
-
         $orders = $query->whereRelation('user' , 'id' , $user->id)->where('payment_status' , 'paid')->latest()->paginate(15);
-
-
         $orders->getCollection()->transform(function($order){
-
             return [
                 'id' => $order->id,
                 'full_name' => $order->user->name,
@@ -73,27 +64,10 @@ class RestOrderController extends Controller
                 'total_amount' => $order->total_amount,
                 'sending_method' => $order->sending_method,
                 'status' => $order->status,
-
-
-
             ];
         });
-
         return api_response($orders, 'داده ها با موفقیت ارسال شدند');
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     public function show_order($id){
 
@@ -116,12 +90,12 @@ class RestOrderController extends Controller
 
         $data = [
             'id' => $id,
-            'price'=>$order->price,
             'full_name'=>$order->user->name,
             'created' => $order->created_at ? Jalalian::fromCarbon($order->created_at)->format('Y/m/d H:i') : null,
             'mobile'=>$order->mobile,
             'address'=>$order->adress?->address,
             'notes'=>$order->notes,
+            'status'=>$order->status,
             'time'=>$order->time,
 
             'admin_note'=>'این توضیح ادمین است',
@@ -150,10 +124,8 @@ class RestOrderController extends Controller
         ];
         return api_response($data,"اطلاعات با موفقیت ارسال شد");
 
-
-
-
     }
+
 
 
 
