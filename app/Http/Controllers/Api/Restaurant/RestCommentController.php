@@ -62,7 +62,7 @@ class RestCommentController extends Controller
          Comment::create([
             'user_id' => auth()->id(),          // کاربر فعلی
             'text' => $request->input('text'),
-            'parent_id' => $parentComment->id,  // کامنت پدر
+            'parent_comment_id' => $parentComment->id,  // کامنت پدر
         ]);
 
         return api_response([], 'پاسخ با موفقیت ثبت شد');
