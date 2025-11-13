@@ -10,10 +10,13 @@ use App\Models\FoodOption;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Restaurant;
+use App\Models\Transaction;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use IPPanel\Client;
 use Morilog\Jalali\Jalalian;
+use SoapClient;
 
 class FinalOrderController extends Controller
 {
@@ -158,7 +161,7 @@ class FinalOrderController extends Controller
                 ]);
                 $x = ui_code($order->id , $user->id);
                 $a = new ParsianPayment();
-                $b = $a->pay($x , (int)$total , 'https://api.testghazaresan.ir?order_id=' . $order->id. '&uni=' . $x );
+                $b = $a->pay($x , (int)$total , 'https://api.testghazaresan.ir/api/order/callback?order_id=' . $order->id. '&uni=' . $x );
                 return api_response($b,'سفارش با موفقیت ثبت شد.');
             }
 
@@ -166,9 +169,16 @@ class FinalOrderController extends Controller
         }
         if ($request->is_wallet == false)
         {
+            Payment::create([
+                'user_id' => $user->id,
+                'order_id' => $order->id,
+                'amount' => $total,
+                'payment_method' => 'gateway',
+                'gateway' => $request->gateway,
+            ]);
             $x = ui_code($order->id , $user->id);
             $a = new ParsianPayment();
-            $b = $a->pay($x , (int)$total , 'https://api.testghazaresan.ir?order_id=' . $order->id. '&uni=' . $x );
+            $b = $a->pay($order->id  , (int)$total , 'https://api.testghazaresan.ir/api/order/callback?order_id=' . $order->id. '&uni=' . $x );
             return api_response($b,'سفارش با موفقیت ثبت شد.');
         }
 //        $data = ['name' => $order->user->name,
@@ -229,12 +239,84 @@ class FinalOrderController extends Controller
         ] , 'تخفیف با موفقیت اعمال شد');
 
     }
-    public function test()
+    protected $payment;
+
+    public function __construct(ParsianPayment $payment)
     {
-        $x = ui_code(1 , 5);
-//        $a = new ParsianPayment();
-//        $b = $a->pay(15 , 10000 , 'https://api.testghazaresan.ir/' );
-        return api_response($x);
+        $this->payment = $payment;
+    }
+
+    public function callback(Request $request)
+    {
+        $order_id = $request->input('order_id');
+        $uni   = $request->input('uni');
+
+        if (!$order_id || !$uni) {
+            return $this->errorResponse('پارامترهای نامعتبر.');
+        }
+
+        $order = Order::where('id', $order_id)->first();
+        $token = $order->authority;
+        if (!$order) {
+            return $this->errorResponse('سفارش یافت نشد.');
+        }
+//        if ($order->payment_status === 'paid') {
+//            return $this->successResponse($order, 'پرداخت قبلاً تأیید شده است.');
+//        }
+        if ($order->payment_status === 'failed') {
+            return $this->errorResponse('سفارش قبلاً ناموفق بوده است.');
+        }
+        $confirmResult = $this->payment->confirm($token);
+
+        if (!$confirmResult['success']) {
+            $order->update([
+                'payment_status' => 'failed',
+            ]);
+            return $this->errorResponse(
+                'پرداخت ناموفق بود. کد خطا: ' . ($confirmResult['code'] ?? 'نامشخص')
+            );
+        }
+        $order->update([
+            'payment_status' => 'paid',
+            'transaction_id' => $confirmResult['rrn'],
+        ]);
+        $user = $order->user;
+        $payment = Payment::where('order_id', $order->id)->first();
+        $payment->update([
+            'status' => 'paid',
+            'transaction_id'=> $order->transaction_id,
+
+        ]);
+        Transaction::updateOrCreate([
+            'tracking_code' => $order->id ,
+        ],[
+            'user_id' => $user->id,
+            'payment_id' => $payment->id,
+            'restaurant_id'=> $order->restaurant->id,
+            'type' => 'credit' ,
+            'amount' => $order->total_price,
+            'tracking_code' => $order->id ,
+            'status' => 'success'
+        ]);
+
+        return $this->successResponse($order, 'پرداخت با موفقیت انجام شد.');
+    }
+
+
+    private function successResponse($order, $message)
+    {
+//        return redirect('https://testghazaresan.ir/profile/orders');
+        return $message ;
+    }
+
+    // پاسخ خطا
+    private function errorResponse($message)
+    {
+//        return redirect('https://testghazaresan.ir/profile/orders');
+        return $message ;
+
+
 
     }
+
 }

@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Order\FinalOrderController;
 use App\Http\Controllers\Api\Profile\UserOrderController;
 use App\Http\Controllers\Api\Restaurant\ProductsMenuController;
 use App\Http\Controllers\Api\Restaurant\RestCommentController;
+use App\Http\Controllers\Api\Restaurant\RestLoginController;
 use App\Http\Controllers\Api\Restaurant\RestOrderController;
 use Illuminate\Support\Facades\Route;
 
@@ -20,6 +21,7 @@ Route::get('/', function () {
 Route::prefix('auth')->group(function () {
     Route::post('/check', [CheckController::class, 'check']);
     Route::post('/login', [LoginController::class, 'login']);
+    Route::post('/restaurant/login', [RestLoginController::class, 'login']);
     Route::post('/register', [RegisterController::class, 'register'])->middleware('auth:sanctum');
     Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth:sanctum');
     Route::post('/sendOtp', [SendOtpController::class, 'sendOtp']);
@@ -54,6 +56,7 @@ Route::prefix('restaurant')->controller(RestaurantController::class)->group(func
 });
 Route::prefix('order')->controller(FinalOrderController::class)->group(function () {
     Route::post('/send_price', 'send_price');
+    Route::post('/callback', 'callback');
     Route::post('/check_discount', 'check_discount')->middleware('auth:sanctum');
     Route::post('/store', 'store')->middleware('auth:sanctum');
 
@@ -67,6 +70,7 @@ Route::prefix('restaurant')->group(function () {
     Route::prefix('/order')->controller(RestOrderController::class)->group(function () {
         Route::get('/index_order', 'index_order');
         Route::get('/show_order/{id}', 'show_order');
+        Route::post('/submit', 'submit_order');
     });
     Route::prefix('/products')->controller(ProductsMenuController::class)->group(function () {
         Route::get('/index_food', 'index');

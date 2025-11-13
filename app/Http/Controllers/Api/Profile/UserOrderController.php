@@ -46,6 +46,7 @@ class UserOrderController
             'notes' => $order->notes,
             'items' => $order->items->map(function($item){
                 return [
+
                     'id' => $item->id,
                     'name' => $item->food->name,
                     'price' => $item->price,

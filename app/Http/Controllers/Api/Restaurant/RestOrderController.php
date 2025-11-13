@@ -125,6 +125,22 @@ class RestOrderController extends Controller
         return api_response($data,"اطلاعات با موفقیت ارسال شد");
 
     }
+    public function submit_order(Request $request)
+    {
+        $request->validate([
+            'order_id' => 'required',
+            'time' => 'required',
+            'admin_note' => 'nullable',
+        ]);
+        $order = Order::find($request->order_id);
+        Order::update([
+            'status' => 'processing',
+            'admin_note' => $request->admin_note,
+            'get_ready_time' => $request->time,
+        ]);
+        return api_response([],'با موفقیت تایید شد' );
+
+    }
 
 
 

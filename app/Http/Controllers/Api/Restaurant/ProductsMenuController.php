@@ -6,8 +6,10 @@ use App\Models\Food;
 use App\Models\FoodCategory;
 use App\Models\FoodOption;
 use App\Models\Payment;
+use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Morilog\Jalali\Jalalian;
 
 
 class ProductsMenuController extends controller
@@ -136,9 +138,8 @@ class ProductsMenuController extends controller
 
     public function filterPayment(Request $request)
     {
-        $query = Payment::query();
-
-
+        $user = User::find(6);
+        $query = Transaction::whereRelation('restaurant', 'user_id', $user->id);
         $fromDate = $request->input('from_date');
         $toDate = $request->input('to_date');
 
@@ -149,7 +150,6 @@ class ProductsMenuController extends controller
             ]);
         }
 
-
         $payment = $query->orderBy('created_at', 'desc')->paginate(15);
 
 
@@ -157,10 +157,12 @@ class ProductsMenuController extends controller
             return [
                 'id' => $pay->id,
                 'amount' => $pay->amount,
-                'notes'=> $pay->notes,
-                'status' => $pay->status,
-                'payment_method' => $pay->payment_method,
-                'created_at' => $pay->created_at?->format('d-m-Y H:i'),
+                'notes'=> $pay->description,
+                'status' => $pay->type,
+                'tracking_code' => $pay->tracking_code,
+                'created_at' => $pay->created_at
+                    ? Jalalian::fromDateTime($pay->created_at)->format('Y/m/d H:i')
+                    : null,
             ];
         });
 

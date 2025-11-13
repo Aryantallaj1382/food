@@ -2,7 +2,9 @@
 // helpers/ParsianPayment.php
 namespace App\Helpers;
 
+use App\Models\Order;
 use Exception;
+use Illuminate\Support\Facades\Log;
 use SoapClient;
 
 class ParsianPayment
@@ -71,10 +73,27 @@ class ParsianPayment
 
             $res = $result->SalePaymentRequestResult;
             if ($res->Status == 0 && !empty($res->Token)) {
-                $this->updateToken($orderId, $res->Token);
-                // برگرداندن URL
+                // لاگ موفقیت + ذخیره توکن
+                \Log::info('Parsian Sale: Token generated', [
+                    'order_id' => $orderId,
+                    'token'    => $res->Token
+                ]);
+
+                Order::where('id', $orderId)->update(['authority' => $res->Token]);
+
+                \Log::info('Redirecting to Parsian gateway', [
+                    'url' => "https://pec.shaparak.ir/NewIPG/?Token=" . $res->Token
+                ]);
+
                 return "https://pec.shaparak.ir/NewIPG/?Token=" . $res->Token;
             } else {
+                // لاگ خطا
+                \Log::warning('Parsian Sale failed', [
+                    'order_id' => $orderId,
+                    'status'   => $res->Status,
+                    'message'  => $res->Message ?? 'خطای ناشناخته'
+                ]);
+
                 $this->showError($res->Status, $res->Message ?? 'خطای ناشناخته');
             }
 
@@ -85,7 +104,7 @@ class ParsianPayment
 
     private function updateToken($orderId, $token)
     {
-        // ذخیره توکن در دیتابیس
+        Order::where('id', $orderId)->update(['authority' => $token]);
     }
 
     private function redirectToBank($token)
@@ -113,7 +132,12 @@ class ParsianPayment
         ];
 
         try {
-            $client = new SoapClient($confirmWsdl);
+            $client = new SoapClient($confirmWsdl, [
+                'cache_wsdl' => WSDL_CACHE_NONE,
+                'trace'      => true,
+                'exceptions' => true
+            ]);
+
             $result = $client->ConfirmPayment(['requestData' => $params]);
             $res = $result->ConfirmPaymentResult;
 
@@ -127,15 +151,15 @@ class ParsianPayment
             } else {
                 return [
                     'success' => false,
-                    'error'   => $res->Message ?? 'خطا',
-                    'code'    => $res->Status
+                    'code'    => $res->Status,
+                    'error'   => $res->Message ?? 'خطای ناشناخته'
                 ];
             }
         } catch (Exception $e) {
+            \Log::error('Parsian Confirm Error: ' . $e->getMessage());
             return [
                 'success' => false,
-                'error'   => 'خطای ارتباط: ' . $e->getMessage()
+                'error'   => 'خطای ارتباط با درگاه: ' . $e->getMessage()
             ];
         }
-    }
-}
+    }}
