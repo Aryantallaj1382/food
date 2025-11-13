@@ -26,10 +26,6 @@ class DiscountCode extends Model
         'valid_until' => 'date',
     ];
 
-    /**
-     * رابطه با مجموعه (Collection)
-     * اگر null باشد، برای همه مجموعه‌هاست
-     */
     public function restaurant()
     {
         return $this->belongsTo(Restaurant::class);

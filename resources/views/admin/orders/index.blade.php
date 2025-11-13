@@ -97,10 +97,6 @@
                     </tbody>
                 </table>
 
-                <!-- صفحه‌بندی -->
-                <div class="p-4 bg-gray-50 border-t flex justify-center">
-                    {{ $orders->links('pagination::tailwind') }}
-                </div>
             @else
                 <p class="text-center text-gray-600 py-8">هیچ سفارشی ثبت نشده است.</p>
             @endif

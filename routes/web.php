@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\CommentController;
 use App\Http\Controllers\Admin\discount\AdminDiscountCodeController;
 use App\Http\Controllers\Admin\food\AdminFoodController;
 use App\Http\Controllers\Admin\restaurant\AdminRestaurantController;
+use App\Http\Controllers\Admin\Transaction\AdminTransactionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/',[AdminDashboardController::class,'index'])->name('admin.dashboard');
@@ -81,5 +82,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('/{slider}', 'destroy')->name('destroy');
     });
     Route::resource('categories', ADminCategoryController::class)->only(['index', 'create', 'store', 'destroy']);
+    Route::get('transaction', [AdminTransactionController::class, 'index'])->name('restaurants.balance');
+    Route::get('transaction/{id}', [AdminTransactionController::class, 'show'])->name('restaurants.transaction.show');
+    Route::get('/{id}/credit', [AdminTransactionController::class, 'createCredit'])->name('credit.create');
+    Route::post('/{id}/credit', [AdminTransactionController::class, 'storeCredit'])->name('credit.store');
 
 });

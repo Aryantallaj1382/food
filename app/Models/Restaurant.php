@@ -48,6 +48,11 @@ class Restaurant extends Model
     {
         return $this->hasMany(RestaurantServiceTime::class);
     }
+    public function transactions()
+    {
+        return $this->hasMany(\App\Models\Transaction::class, 'restaurant_id');
+    }
+
     public function categories()
     {
         return $this->belongsToMany(Category::class, 'category_restaurant');

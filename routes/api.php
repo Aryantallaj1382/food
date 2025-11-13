@@ -66,7 +66,7 @@ Route::get('/test', [FinalOrderController::class, 'test']);
 
 
 
-Route::prefix('restaurant')->group(function () {
+Route::prefix('restaurant')->middleware('auth:sanctum')->group(function () {
     Route::prefix('/order')->controller(RestOrderController::class)->group(function () {
         Route::get('/index_order', 'index_order');
         Route::get('/show_order/{id}', 'show_order');
