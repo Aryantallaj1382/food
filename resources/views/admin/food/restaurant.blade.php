@@ -14,6 +14,15 @@
                 <button @click="show = false" class="text-green-700 hover:text-green-900 font-bold">&times;</button>
             </div>
         @endif
+            @if ($errors->any())
+                <div class="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                    <ul class="list-disc list-inside">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
         <!-- دکمه اضافه کردن غذا -->
         <div class="flex justify-start md:justify-end mb-6">
@@ -57,7 +66,7 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2 space-x-reverse">
                             <a href="{{route('admin.foods.edit', $food->id)}}"
                                class="text-indigo-600 hover:text-indigo-900">ویرایش</a>
-                            <form action="#"
+                            <form action="{{route('admin.foods.destroy', $food->id)}}"
                                   method="POST" class="inline">
                                 @csrf
                                 @method('DELETE')

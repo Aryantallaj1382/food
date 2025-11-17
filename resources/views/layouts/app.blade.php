@@ -15,10 +15,15 @@
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     @endpush
     <script src="//unpkg.com/alpinejs" defer></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastr@2.1.4/toastr.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.css">
     <!-- Tom-Select CSS & JS -->
     <link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.default.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
+
+    <link rel="stylesheet" href="https://majidh1.github.io/JalaliDatePicker/assets/jalalidatepicker.min.css">
+    <script src="https://majidh1.github.io/JalaliDatePicker/assets/jalalidatepicker.min.js"></script>
 
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
@@ -51,6 +56,7 @@
         body.mobile #mainContent {
             display: none;
         }
+        @import "https://majidh1.github.io/JalaliDatePicker/assets/demo.css";
     </style>
 </head>
 

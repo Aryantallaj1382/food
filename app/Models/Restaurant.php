@@ -10,27 +10,7 @@ class Restaurant extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'name',
-        'image',
-        'address',
-        'grt_ready_minute',
-        'sending_way',
-        'minimum_price',
-        'work_time',
-        'latitude',
-        'longitude',
-        'is_open',
-        'user_id',
-        'send_price',
-        'discount_percentage',
-        'delivery_radius_km',
-        'discount',
-        'morning_start',
-        'morning_end',
-        'afternoon_start',
-        'afternoon_end',
-    ];
+    protected $guarded = [];
     protected $hidden = [
         'created_at',
         'updated_at',
@@ -38,6 +18,11 @@ class Restaurant extends Model
     protected $casts = [
         'latitude' => 'float',
         'longitude' => 'float',
+        'tax_enabled' => 'boolean',
+        'panel_editable' => 'boolean',
+        'free_shipping' => 'boolean',
+        'discount' => 'boolean',
+        'is_open' => 'boolean',
     ];
     public function user()
     {

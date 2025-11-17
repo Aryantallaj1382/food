@@ -48,6 +48,7 @@ class FinalOrderController extends Controller
             'restaurant_id' => $request->restaurantId,
             'user_id' => $user->id,
             'payment_status' => 'pending',
+            'status' => 'pending',
             'payment_method' => $request->payment_method,
             'gateway' => $request->gateway,
             'discount_code' => $request->discount_code,
@@ -130,7 +131,17 @@ class FinalOrderController extends Controller
         }
 
 
-
+        if ($request->payment_method == 'cash')
+        {
+            $order->update(['payment_status' => 'cash', 'status' => 'pending' , 'total_amount' => $total]);
+            Payment::create([
+                'user_id' => $user->id,
+                'order_id' => $order->id,
+                'amount' => $total,
+                'payment_method' => 'wallet',
+            ]);
+            return response()->json(['data'=>'https://testghazaresan.ir/search/payment/success/'.$order->id]);
+        }
         if ($request->is_wallet == true)
         {
             $balance = $user->wallet->balance;
@@ -139,7 +150,7 @@ class FinalOrderController extends Controller
                 $new_balance =  $balance - $total;
                 $user->wallet->balance = $new_balance;
                 $user->wallet->save();
-                $order->update(['payment_status' => 'paid', 'status' => 'processing' , 'total_amount' => $total]);
+                $order->update(['payment_status' => 'paid', 'status' => 'pending' , 'total_amount' => $total]);
                 Payment::create([
                     'user_id' => $user->id,
                     'order_id' => $order->id,
@@ -305,15 +316,15 @@ class FinalOrderController extends Controller
 
     private function successResponse($order, $message)
     {
-//        return redirect('https://testghazaresan.ir/profile/orders');
-        return $message ;
+        return redirect('https://testghazaresan.ir/search/payment/success/'.$order->id);
+//        return $message ;
     }
 
     // پاسخ خطا
     private function errorResponse($message)
     {
-//        return redirect('https://testghazaresan.ir/profile/orders');
-        return $message ;
+        return redirect('https://testghazaresan.ir/search/payment/failed');
+//        return $message ;
 
 
 

@@ -18,7 +18,7 @@
                         <th class="py-3 px-4">مبلغ کل</th>
                         <th class="py-3 px-4">روش پرداخت</th>
                         <th class="py-3 px-4">تاریخ</th>
-                        <th class="py-3 px-4">وضعیت پرداخت</th>
+                        <th class="py-3 px-4">وضعیت</th>
                         <th class="py-3 px-4">عملیات</th>
                     </tr>
                     </thead>

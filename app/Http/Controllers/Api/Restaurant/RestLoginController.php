@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Restaurant;
 
+use App\Models\Restaurant;
 use App\Models\TempUser;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -21,7 +22,8 @@ class RestLoginController
         if (!$user) {
             return  api_response([],'کاربری یافت نشد');
         }
-        if (!$user->restaurants)
+        $rest  = Restaurant::where('user_id', $user->id)->first();
+        if (!$rest)
         {
             return api_response([],'شما اجازه ی دسترسی ندارید');
         }

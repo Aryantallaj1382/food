@@ -2,11 +2,14 @@
 
 use App\Http\Controllers\Admin\AdminCategoryController;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminReportRestaurantController;
 use App\Http\Controllers\Admin\AdminRestaurantIntroductionController;
 use App\Http\Controllers\Admin\CommentController;
 use App\Http\Controllers\Admin\discount\AdminDiscountCodeController;
 use App\Http\Controllers\Admin\food\AdminFoodController;
+use App\Http\Controllers\Admin\order\ordersController;
 use App\Http\Controllers\Admin\restaurant\AdminRestaurantController;
+use App\Http\Controllers\Admin\TelephoneOrderController;
 use App\Http\Controllers\Admin\Transaction\AdminTransactionController;
 use Illuminate\Support\Facades\Route;
 
@@ -47,6 +50,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/restaurant/{restaurant_id}/food', 'store')->name('store');
         Route::get('/restaurant`/food/{id}/edit',  'edit')->name('edit');
         Route::put('/restaurant/{restaurant_id}/food/{id}',  'update')->name('update');
+        Route::delete('/restaurant/food/{id}',  'destroy')->name('destroy');
         // ... سایر روت‌ها
     });
     Route::prefix('users')->name('users.')->controller(\App\Http\Controllers\Admin\User\AdminUserController::class)->group(function () {
@@ -87,4 +91,32 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/{id}/credit', [AdminTransactionController::class, 'createCredit'])->name('credit.create');
     Route::post('/{id}/credit', [AdminTransactionController::class, 'storeCredit'])->name('credit.store');
 
+    Route::prefix('orders')->name('orders.')->group(function() {
+        Route::get('telephone/create', [TelephoneOrderController::class, 'create'])->name('telephone.create');
+        Route::post('telephone', [TelephoneOrderController::class, 'store'])->name('telephone.store');
+        Route::get('users/check', [TelephoneOrderController::class, 'checkUser'])->name('checkUser');
+        Route::get('restaurants/{restaurant}/foods', [TelephoneOrderController::class, 'getRestaurantFoods']);
+
+    });
+    Route::get('/report/restaurants/show/{restaurant}', [AdminReportRestaurantController::class, 'reports'])->name('restaurants.reports.show');
+    Route::get('/report/restaurants', [AdminReportRestaurantController::class, 'index'])->name('restaurants.reports.index');
+    Route::get('/admin/restaurants/{restaurant}/reports/sales',
+        [AdminReportRestaurantController::class, 'salesReport'])
+        ->name('restaurants.reports.sales');
+    Route::get('/admin/restaurants/{id}/payouts', [AdminReportRestaurantController::class, 'payouts'])
+        ->name('restaurants.reports.payouts');
+    Route::get('/admin/restaurants/{id}/orders-count', [AdminReportRestaurantController::class, 'ordersCount'])
+        ->name('restaurants.reports.orders_count');
+    Route::post('/admin/restaurants/toggle-all', [AdminReportRestaurantController::class, 'toggleAll'])
+        ->name('restaurants.toggleAll');
+// routes/web.php یا admin.php
+    Route::get('/foods/inactivate', [AdminFoodController::class, 'inactiveFoods'])->name('foods.activate');
+    // routes/web.php یا admin.php
+    Route::patch('foods/{food}/activate-all-options', [AdminFoodController::class, 'activateAllOptions'])
+        ->name('foods.activate-all-options');
+    Route::patch('/food-options/{option}/toggle', [AdminFoodController::class, 'toggle'])
+        ->name('admin.food-options.toggle');
+    // routes/web.php
+    Route::patch('/orders/{order}/admin-note', [ordersController::class, 'updateAdminNote'])
+        ->name('orders.update-admin-note');
 });

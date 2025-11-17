@@ -23,8 +23,8 @@ class ProductsMenuController extends controller
 
     public function index(Request $request)
     {
-        // $user = auth()->user();
-        $user = User::find(6);
+        $user = auth()->user();
+
         $foodName = $request->input('search');
         $category = $request->input('category_id');
         $query = Food::whereRelation('restaurant', 'user_id', $user->id);
@@ -138,7 +138,7 @@ class ProductsMenuController extends controller
 
     public function filterPayment(Request $request)
     {
-        $user = User::find(6);
+        $user = auth()->user();
         $query = Transaction::whereRelation('restaurant', 'user_id', $user->id);
         $fromDate = $request->input('from_date');
         $toDate = $request->input('to_date');

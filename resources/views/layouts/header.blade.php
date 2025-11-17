@@ -20,7 +20,72 @@
             </a>
         </div>
 
+        @php
+            $allActive = \App\Models\Restaurant::where('is_open', 0)->count() === 0;
+            $targetStatus = $allActive ? 1 : 0;
+        @endphp
+        <form id="toggleAllForm" action="{{ route('admin.restaurants.toggleAll') }}" method="POST" class="ml-4 inline-flex items-center">
+            @csrf
+            <label class="inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="toggleSwitch" class="sr-only peer"
+                    {{ $allActive ? 'checked' : '' }}>
+                <div class="relative w-9 h-5
+                    bg-gray-400
+                    peer-focus:outline-none
+                    peer-focus:ring-4
+                    peer-focus:ring-opacity-50
+                    rounded-full peer
+                    peer-checked:after:translate-x-full
+                    rtl:peer-checked:after:-translate-x-full
+                    after:content-['']
+                    after:absolute
+                    after:top-[2px]
+                    after:start-[2px]
+                    after:bg-white
+                    after:rounded-full
+                    after:h-4 after:w-4
+                    after:transition-all
+                    {{ $allActive ? 'peer-checked:bg-green-600 bg-green-400':'peer-checked:bg-red-600 bg-red-400' }}">
+                </div>
 
+                <span class="select-none ms-3 text-sm font-medium text-heading">
+            {{ $allActive ? 'همه ی رستوران ها فعال هستند' : 'همه ی رستوران ها غیر فعال هستند' }}
+        </span>
+            </label>
+            <input type="hidden" name="status" value="{{ $targetStatus }}" id="statusInput">
+        </form>
+
+        <script>
+            document.getElementById('toggleSwitch').addEventListener('change', function () {
+                const form = document.getElementById('toggleAllForm');
+                const statusInput = document.getElementById('statusInput');
+
+                // همیشه مقدار مخالف وضعیت فعلی رو بفرست
+                const allCurrentlyActive = {{ $allActive ? 'true' : 'false' }};
+                const newStatus = this.checked ? 1 : 0;
+
+
+                statusInput.value = newStatus;
+
+                // آپدیت متن
+                const label = this.closest('label').querySelector('span');
+                label.textContent = this.checked ? 'همه ی رستوران ها غیر فعال هستند' : 'همه ی رستوران ها فعال هستند';
+
+
+                // آپدیت رنگ
+                const track = this.nextElementSibling;
+                if (this.checked) {
+                    track.classList.replace('bg-green-400', 'bg-red-400');
+                    track.classList.replace('peer-checked:bg-green-600', 'peer-checked:bg-red-600');
+                } else {
+                    track.classList.replace('bg-red-400', 'bg-green-400');
+                    track.classList.replace('peer-checked:bg-red-600', 'peer-checked:bg-green-600');
+                }
+
+                // ارسال فرم
+                form.submit();
+            });
+        </script>
 
         <div class="relative group">
             <button

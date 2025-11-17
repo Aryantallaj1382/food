@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Food;
 use App\Http\Controllers\Controller;
 use App\Models\Comment;
 use App\Models\CommentLike;
+use App\Models\Food;
 use App\Models\Restaurant;
 use App\Models\User;
 use Carbon\Carbon;
@@ -12,6 +13,7 @@ use Illuminate\Http\Request;
 
 class RestaurantController extends Controller
 {
+
     public function show($id)
     {
         $restaurant = Restaurant::find($id);

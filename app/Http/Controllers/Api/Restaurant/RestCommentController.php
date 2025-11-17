@@ -12,8 +12,8 @@ class RestCommentController extends Controller
 {
     public function index()
     {
-//        $user = auth()->user();
-        $user = User::find(6);
+        $user = auth()->user();
+
 
         $comments = Comment::whereHas('order', function ($query) use ($user) {
                 $query->whereHas('restaurant', function ($query) use ($user) {

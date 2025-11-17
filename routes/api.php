@@ -71,6 +71,7 @@ Route::prefix('restaurant')->middleware('auth:sanctum')->group(function () {
         Route::get('/index_order', 'index_order');
         Route::get('/show_order/{id}', 'show_order');
         Route::post('/submit', 'submit_order');
+        Route::post('/complete', 'completed_order');
     });
     Route::prefix('/products')->controller(ProductsMenuController::class)->group(function () {
         Route::get('/index_food', 'index');

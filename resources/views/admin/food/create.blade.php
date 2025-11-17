@@ -5,7 +5,15 @@
     <div class="container mx-auto p-6 max-w-4xl">
         <div class="bg-white rounded-xl shadow-lg p-8">
             <h2 class="text-2xl font-bold text-gray-800 mb-6">اضافه کردن غذای جدید به {{ $restaurant->name }}</h2>
-
+            @if ($errors->any())
+                <div class="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                    <ul class="list-disc list-inside">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
             <form action="{{ route('admin.foods.store', $restaurant->id) }}" method="POST" enctype="multipart/form-data" id="foodForm">
                 @csrf
 
@@ -35,10 +43,10 @@
 
                     <div>
                         <label class="block text-gray-700 font-medium mb-2">دسته‌بندی</label>
-                        <select name="category_id" class="w-full p-3 border rounded-lg">
+                        <select name="food_categories_id" class="w-full p-3 border rounded-lg">
                             <option value="">بدون دسته</option>
                             @foreach(\App\Models\Category::all() as $cat)
-                                <option value="{{ $cat->id }}" {{ old('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                                <option value="{{ $cat->id }}" {{ old('food_categories_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -85,7 +93,7 @@
 
                                 <!-- قیمت ظرف -->
                                 <input type="number" name="options[0][dish_price]" placeholder="تعداد سفارش برای هر ظرف"
-                                       class="p-2 border rounded-md text-sm" min="0" step="100">
+                                       class="p-2 border rounded-md text-sm">
                             </div>
 
                             <button type="button" class="remove-option text-red-600 hover:text-red-800 text-sm mt-2">

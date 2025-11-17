@@ -45,6 +45,19 @@ class AdminRestaurantController extends Controller
             'name' => 'required|string|max:255',
             'user_id' => 'required|exists:users,id',
             'address' => 'nullable|string|max:500',
+            'text' => 'nullable|string|max:500',
+            'tax_enabled' => 'nullable',          // تغییر به nullable
+            'panel_editable' => 'nullable',
+            'distance_km' => 'required',
+            'cost_per_km' => 'required',
+            'free_shipping' => 'required',
+            'cod_courier' => 'required',
+            'online_courier' => 'required',
+            'pay_type' => 'required',
+            'morning_end' => 'required',
+            'afternoon_end' => 'required',
+            'afternoon_start' => 'required',
+            'morning_start' => 'required',
             'grt_ready_minute' => 'nullable|integer|min:0',
             'sending_way' => 'nullable|string|max:255',
             'minimum_price' => 'nullable|numeric|min:0',
@@ -55,11 +68,13 @@ class AdminRestaurantController extends Controller
             'send_price' => 'nullable|numeric|min:0',
             'discount_percentage' => 'nullable|numeric|min:0|max:100',
             'delivery_radius_km' => 'nullable|numeric|min:0',
-            'discount' => 'nullable|boolean',
+            'discount' => 'nullable',
             'image' => 'nullable|image|max:2048',
-            'categories' => 'nullable|array',
         ]);
-
+        $validated['tax_enabled'] = $request->has('tax_enabled') ? 1 : 0;
+        $validated['panel_editable'] = $request->has('panel_editable') ? 1 : 0;
+        $validated['free_shipping'] = $request->has('free_shipping') ? 1 : 0;
+        $validated['discount'] = $request->has('discount') ? 1 : 0;
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             $imageName = time() . '_' . $image->getClientOriginalName();
@@ -78,29 +93,49 @@ class AdminRestaurantController extends Controller
     }
     public function edit(Restaurant $restaurant)
     {
+        $users = User::all();
         $categories = Category::all();
-        return view('restaurant.edit', compact('restaurant', 'categories'));
+        return view('restaurant.edit',  compact('restaurant', 'users', 'categories'));
     }
 
     public function update(Request $request, Restaurant $restaurant)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'address' => 'nullable|string',
-            'image' => 'nullable|image|max:2048',
+            'name' => 'nullable|string|max:255',
+            'user_id' => 'nullable|exists:users,id',
+            'address' => 'nullable|string|max:500',
+            'text' => 'nullable|string|max:500',
+            'tax_enabled' => 'nullable',
+            'panel_editable' => 'nullable',
+            'distance_km' => 'nullable',
+            'cost_per_km' => 'nullable',
+            'free_shipping' => 'nullable',
+            'cod_courier' => 'nullable',
+            'online_courier' => 'nullable',
+            'pay_type' => 'nullable',
+            'morning_end' => 'nullable',
+            'afternoon_end' => 'nullable',
+            'afternoon_start' => 'nullable',
+            'morning_start' => 'nullable',
+            'grt_ready_minute' => 'nullable|integer|min:0',
+            'sending_way' => 'nullable|string|max:255',
             'minimum_price' => 'nullable|numeric|min:0',
-            'grt_ready_minute' => 'nullable|numeric|min:0',
-            'sending_way' => 'nullable|string',
-            'send_price' => 'nullable|numeric|min:0',
-            'discount_percentage' => 'nullable|numeric|min:0|max:100',
+            'work_time' => 'nullable|string|max:255',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
-            'categories' => 'nullable|array',
             'is_open' => 'nullable|boolean',
-            'discount' => 'nullable|boolean',
+            'send_price' => 'nullable|numeric|min:0',
+            'discount_percentage' => 'nullable|numeric|min:0|max:100',
+            'delivery_radius_km' => 'nullable|numeric|min:0',
+            'discount' => 'nullable',
+            'image' => 'nullable|image|max:2048',
         ]);
 
-        // آپلود تصویر در پوشه public
+        $validated['tax_enabled'] = $request->has('tax_enabled') ? 1 : 0;
+        $validated['panel_editable'] = $request->has('panel_editable') ? 1 : 0;
+        $validated['free_shipping'] = $request->has('free_shipping') ? 1 : 0;
+        $validated['discount'] = $request->has('discount') ? 1 : 0;
+
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             $imageName = time() . '_' . $image->getClientOriginalName();
@@ -110,14 +145,12 @@ class AdminRestaurantController extends Controller
 
         $restaurant->update($validated);
 
-        // دسته‌بندی‌ها
-        if(isset($validated['categories'])){
-            $restaurant->categories()->sync($validated['categories']);
+        if ($request->has('categories')) {
+            $restaurant->categories()->sync($request->categories);
         }
 
-        return redirect()->route('admin.restaurants.index')->with('success', 'رستوران با موفقیت ویرایش شد.');
+        return redirect()->route('admin.restaurants.index')->with('success', 'رستوران با موفقیت به‌روزرسانی شد.');
     }
-
     public function destroy(Restaurant $restaurant)
     {
         // حذف تصویر اگر وجود داشت

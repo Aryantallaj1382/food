@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Morilog\Jalali\CalendarUtils;
 use Morilog\Jalali\Jalalian;
@@ -16,8 +17,7 @@ class RestOrderController extends Controller
 
     public function index_order(Request $request)
     {
-//        $user = auth()->user();
-        $user = User::find(6);
+        $user = auth()->user();
 
         $user_name = $request->input('user_name');
         $mobile= $request->input('mobile');
@@ -54,7 +54,8 @@ class RestOrderController extends Controller
 
             $query->whereBetween('created_at', [$fromGregorian, $toGregorian]);
         }
-        $orders = $query->whereRelation('user' , 'id' , $user->id)->where('payment_status' , 'paid')->latest()->paginate(15);
+
+        $orders = $query->whereRelation('user' , 'id' , $user->id)->where('payment_status' , 'paid')->orWhere('payment_status' , 'cash')->latest()->paginate(15);
         $orders->getCollection()->transform(function($order){
             return [
                 'id' => $order->id,
@@ -64,6 +65,8 @@ class RestOrderController extends Controller
                 'total_amount' => $order->total_amount,
                 'sending_method' => $order->sending_method,
                 'status' => $order->status,
+                'time' => $order->time ,
+                'get_ready_time' =>  $order->get_ready_time ?? $order->time,
             ];
         });
         return api_response($orders, 'داده ها با موفقیت ارسال شدند');
@@ -96,7 +99,7 @@ class RestOrderController extends Controller
             'address'=>$order->adress?->address,
             'notes'=>$order->notes,
             'status'=>$order->status,
-            'time'=>$order->time,
+            'time'=>$order->time ,
 
             'admin_note'=>'این توضیح ادمین است',
 
@@ -125,24 +128,50 @@ class RestOrderController extends Controller
         return api_response($data,"اطلاعات با موفقیت ارسال شد");
 
     }
+
     public function submit_order(Request $request)
     {
         $request->validate([
             'order_id' => 'required',
-            'time' => 'required',
+            'time' => 'nullable|integer|min:0',
             'admin_note' => 'nullable',
         ]);
-        $order = Order::find($request->order_id);
-        Order::update([
-            'status' => 'processing',
-            'admin_note' => $request->admin_note,
-            'get_ready_time' => $request->time,
-        ]);
-        return api_response([],'با موفقیت تایید شد' );
 
+        $order = Order::find($request->order_id);
+
+        if (!$order) {
+            return api_response([], 'سفارش یافت نشد', 404);
+        }
+
+        $getReadyTime = null;
+        if ($request->time) {
+            $getReadyTime = Carbon::now('Asia/Tehran')->addMinutes($request->time)->format('H:i');
+        }
+
+        $order->update([
+            'status' => 'processing',
+            'restaurant_accept' => 1,
+            'admin_note' => $request->admin_note,
+            'get_ready_time' => $getReadyTime,
+        ]);
+
+        return api_response([], 'با موفقیت تایید شد');
     }
 
+    public function completed_order(Request $request)
+    {
+        $request->validate([
+            'order_id' => 'required',
+            'status' => 'required',
 
+        ]);
+        $order = Order::find($request->order_id);
+        $order->update([
+            'status' => $request->status,
+        ]);
+        return api_response([],'با موفقیت وضعیت تغییر کرد' );
+
+    }
 
 
 

@@ -12,7 +12,7 @@ class RestReportController extends Controller
 {
     public function index(Request $request)
     {
-        $user = User::find(6);
+        $user = auth()->user();
 
         $from = $request->input('from');
         $to = $request->input('to');

@@ -26,6 +26,43 @@
         </ul>
         <ul class="space-y-2 text-sm">
             <li>
+                <a href="{{route('admin.restaurants.reports.index')}}"
+                   class="flex items-center gap-3 px-4 py-3 rounded-lg transition
+                          hover:bg-blue-50 hover:text-blue-600 font-medium group">
+                    <span class="material-icons text-gray-500 group-hover:text-blue-600">گزارش رستوران ها</span>
+
+                </a>
+            </li>
+
+
+
+        </ul>
+        <ul class="space-y-2 text-sm">
+            <li>
+                <a href="{{route('admin.foods.activate')}}"
+                   class="flex items-center gap-3 px-4 py-3 rounded-lg transition
+                          hover:bg-blue-50 hover:text-blue-600 font-medium group">
+                    <span class="material-icons text-gray-500 group-hover:text-blue-600">غذا های غیر فعال</span>
+
+                </a>
+            </li>
+
+
+        </ul>
+        <ul class="space-y-2 text-sm">
+            <li>
+                <a href="{{route('admin.orders.telephone.create')}}"
+                   class="flex items-center gap-3 px-4 py-3 rounded-lg transition
+                          hover:bg-blue-50 hover:text-blue-600 font-medium group">
+                    <span class="material-icons text-gray-500 group-hover:text-blue-600">ثبت سفارش دستی</span>
+
+                </a>
+            </li>
+
+
+        </ul>
+        <ul class="space-y-2 text-sm">
+            <li>
                 <a href="{{route('admin.discount-codes.index')}}"
                    class="flex items-center gap-3 px-4 py-3 rounded-lg transition
                           hover:bg-blue-50 hover:text-blue-600 font-medium group">

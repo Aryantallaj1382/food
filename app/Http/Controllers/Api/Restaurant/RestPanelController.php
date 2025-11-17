@@ -36,8 +36,8 @@ class RestPanelController extends Controller
     }
     public function changePassword(Request $request)
     {
-//        $user = auth()->user();
-        $user = User::find(6);
+        $user = auth()->user();
+
 
         $request->validate([
             'password' => 'required',

@@ -42,13 +42,13 @@ class UserOrderController
             'address' => $order->adress->address,
             'payment_method' => $order->payment_method,
             'sending_method' => $order->sending_method,
-            'payment_status' => $order->payment_status,
+            'payment_status' => $order->pay_status_fa,
             'notes' => $order->notes,
             'items' => $order->items->map(function($item){
                 return [
 
                     'id' => $item->id,
-                    'name' => $item->food->name,
+                    'name' => $item->option?->food?->name,
                     'price' => $item->price,
                     'quantity' => $item->quantity,
                     'dish_quantity' => $item->dish_quantity,

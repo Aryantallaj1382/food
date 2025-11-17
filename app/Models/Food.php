@@ -16,6 +16,7 @@ class Food extends Model
         'restaurant_id',
         'name',
         'image',
+        'food_categories_id',
         'description',
         'is_available',
     ];
@@ -73,6 +74,20 @@ class Food extends Model
         }
 
         return 0;
+    }
+
+    public function scopeInactive($query)
+    {
+        return $query->select('foods.*')
+            ->from('foods')
+            ->join('food_options', 'foods.id', '=', 'food_options.food_id')
+            ->groupBy('foods.id')
+            ->havingRaw('MIN(food_options.is_available) = 0');
+    }
+    public function inactiveOptions()
+    {
+        return $this->hasMany(FoodOption::class, 'food_id')
+            ->where('is_available', 0);
     }
 
 
