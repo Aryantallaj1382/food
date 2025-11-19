@@ -98,6 +98,85 @@
                 @endif
             </div>
 
+            <div class="container py-6" dir="rtl">
+                <h2 class="text-2xl font-bold mb-4">📍 آدرس‌های کاربر </h2>
+
+                @if($address->count() > 0)
+                    <div class="bg-white shadow rounded-lg p-4 overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 table-auto">
+                            <thead class="bg-gray-100">
+                            <tr>
+                                <th class="text-center px-4 py-2">#</th>
+                                <th class="text-center px-4 py-2">آدرس کامل</th>
+                                <th class="text-center px-4 py-2">نمایش روی نقشه</th>
+
+                            </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 text-center">
+                            @foreach($address as $key => $addr)
+                                <tr class="h-12">
+                                    <td class="px-4 py-2">{{ $key + 1 }}</td>
+                                    <td class="px-4 py-2">{{ $addr->address ?? '---' }}</td>
+                                    <td class="px-4 py-2">
+                                        @if($addr->latitude && $addr->longitude)
+                                            <button class="show-map-btn px-2 py-1 bg-blue-500 text-white rounded"
+                                                    data-lat="{{ $addr->latitude }}"
+                                                    data-lng="{{ $addr->longitude }}">
+                                                نمایش روی نقشه
+                                            </button>
+                                        @else
+                                            ---
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @else
+                    <p class="text-center text-gray-600 py-4">هیچ آدرسی ثبت نشده است.</p>
+                @endif
+            </div>
+
+            <!-- مدال نقشه -->
+            <div id="map-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="bg-white rounded-lg w-11/12 md:w-1/2 p-4 relative">
+                    <button id="map-close" class="absolute top-2 right-2 px-3 py-1 bg-red-500 text-white rounded">✖</button>
+                    <div id="map" class="w-full h-96 rounded"></div>
+                </div>
+            </div>
+
+
+
+
     </div>
+
+    <script>
+        document.querySelectorAll('.show-map-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const lat = parseFloat(this.dataset.lat);
+                const lng = parseFloat(this.dataset.lng);
+
+                // باز کردن مدال
+                document.getElementById('map-modal').classList.remove('hidden');
+
+                // ساخت نقشه
+                const map = L.map('map').setView([lat, lng], 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+
+                L.marker([lat, lng]).addTo(map)
+                    .bindPopup("مکان کاربر")
+                    .openPopup();
+            });
+        });
+
+        // بستن مدال
+        document.getElementById('map-close').addEventListener('click', function () {
+            document.getElementById('map-modal').classList.add('hidden');
+            document.getElementById('map').innerHTML = ''; // حذف نقشه قبلی
+        });
+    </script>
 
 @endsection

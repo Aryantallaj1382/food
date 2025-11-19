@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\Transaction;
 use App\Http\Controllers\Controller;
 use App\Models\Restaurant;
 use Illuminate\Http\Request;
+use Morilog\Jalali\Jalalian;
 
 class AdminTransactionController extends Controller
 {
@@ -94,6 +95,14 @@ class AdminTransactionController extends Controller
             'description' => $request->description,
             'tracking_code' => $request->tracking_code,
         ]);
+        if ($request->filled('tracking_code')) {
+            $mobile = $restaurant->user->mobile;
+            $data = ['amount' => $request->amount,
+                'tracking-code' => $request->tracking_code,
+            ];
+            sms('b29k99yczx47hsh' ,$mobile , $data );
+
+        }
 
         return redirect()->route('admin.restaurants.balance', $restaurant->id)
             ->with('success', 'تراکنش بستانکار با موفقیت ثبت شد.');

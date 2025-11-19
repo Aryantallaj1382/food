@@ -69,8 +69,6 @@ class SendOtpController extends Controller
 
             }
 
-
-
         } catch (Throwable $e) {
 
             return response()->json([
@@ -80,7 +78,7 @@ class SendOtpController extends Controller
                 'trace' => $e->getTraceAsString()
             ], 500);
         }
-        return api_response($responseMessages, 'کد تایید برای شما ارسال شد');
+        return api_response(['remain'=>120], 'کد تایید برای شما ارسال شد');
     }
 
 }

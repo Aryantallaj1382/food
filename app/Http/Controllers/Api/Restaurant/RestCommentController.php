@@ -20,13 +20,21 @@ class RestCommentController extends Controller
                     $query->where('user_id', $user->id);
                 });
         })->paginate();
+
         $comments->getCollection()->transform(function ($item, $key) use ($user) {
-           return [
+            $order = $item->order->items->map(function($orderItem) {
+                $foodName = $orderItem->option?->food?->name ?? '';
+                $optionName = $orderItem->option?->name;
+
+                return $optionName ? "$foodName ($optionName)" : $foodName;
+            })->toArray();
+
+            return [
                'id' => $item->id,
                'text' => $item->text,
                'profile' => $item->user->profile,
-               'user_name' => $item->user->name,
-               'rate' => $item->rate,
+               'user_name' => $item->user->first_name,
+               'rate' => $item->rating,
                'is_liked' => $user
                    ? $item->likes->where('user_id', $user->id)->where('is_like', true)->isNotEmpty()
                    : false,
@@ -44,7 +52,7 @@ class RestCommentController extends Controller
 
                'likesCount' => $item->likesCount(),
                'dislikesCount' => $item->dislikesCount(),
-               'order' => $item->order->items->pluck('option.food.name')->toArray(),
+               'order' => $order ,
 
            ];
         });
@@ -53,19 +61,27 @@ class RestCommentController extends Controller
     }
     public function reply(Request $request, $id)
     {
-        $request->validate([
-            'text' => 'required|string|max:1000',
-        ]);
-
         $parentComment = Comment::findOrFail($id);
 
-         Comment::create([
-            'user_id' => auth()->id(),
-            'text' => $request->input('text'),
-            'parent_comment_id' => $parentComment->id,
-        ]);
+        $text = $request->input('text', '');
 
-        return api_response([], 'پاسخ با موفقیت ثبت شد');
+        $existingReply = Comment::where('user_id', auth()->id())
+            ->where('parent_comment_id', $parentComment->id)
+            ->first();
+
+        if ($existingReply) {
+            $existingReply->delete();
+        }
+        if ($text !== '') {
+            Comment::create([
+                'user_id' => auth()->id(),
+                'text' => $text,
+                'parent_comment_id' => $parentComment->id,
+            ]);
+        }
+
+        return api_response([], $text !== '' ? 'پاسخ با موفقیت ثبت شد' : 'پاسخ حذف شد');
     }
+
 
 }

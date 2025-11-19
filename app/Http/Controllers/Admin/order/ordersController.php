@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin\order;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Order;
+use Morilog\Jalali\Jalalian;
+
 class ordersController extends Controller
 {
     public function index(Request $request)
@@ -46,6 +48,44 @@ class ordersController extends Controller
         $order->update(['admin_note' => $request->admin_note]);
 
         return response()->json(['message' => 'ذخیره شد']);
+    }
+    public function updateStatus(Request $request, Order $order)
+    {
+        $request->validate([
+            'status' => 'required',
+        ]);
+        if ($request->status == 'processing') {
+
+
+            if ($order->sending_method == 'in_person')
+            {
+                $getReadyTime = $order->get_ready_time;
+
+                $getReadyTimeJalali = $getReadyTime
+                    ? Jalalian::fromDateTime($getReadyTime)->format('H:i')
+                    : 'بزودی';
+
+                $mobile = $order->user->mobile;
+                $data = [
+                    'readytime' => $getReadyTimeJalali,
+                ];
+
+                sms('j5ztbv1xqsaqv6x', $mobile, $data);
+
+            }
+            if ($order->sending_method == 'pike')
+            {
+                $mobile = $order->user->mobile;
+                $data = [
+                    'name' =>$order->user->name ,
+                ];
+                sms('0xxkazsqtxh2mc2' ,$mobile , $data );
+            }
+        }
+
+        $order->update(['status' => $request->status]);
+
+        return response()->json(['success' => true]);
     }
 
 }

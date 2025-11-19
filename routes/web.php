@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminCategoryController;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminNotificationController;
 use App\Http\Controllers\Admin\AdminReportRestaurantController;
 use App\Http\Controllers\Admin\AdminRestaurantIntroductionController;
 use App\Http\Controllers\Admin\CommentController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\Admin\order\ordersController;
 use App\Http\Controllers\Admin\restaurant\AdminRestaurantController;
 use App\Http\Controllers\Admin\TelephoneOrderController;
 use App\Http\Controllers\Admin\Transaction\AdminTransactionController;
+use App\Http\Controllers\Admin\User\AdminUserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/',[AdminDashboardController::class,'index'])->name('admin.dashboard');
@@ -69,8 +71,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
     });
     Route::prefix('order')->name('orders.')->controller(\App\Http\Controllers\Admin\order\ordersController::class)->group(function () {
         route::get('/','index')->name('index');
-        route::delete('/{id}','destroy')->name('delete');
         route::get('/show/{id}','show')->name('show');
+        Route::patch('/orders/{order}/status', 'updateStatus');
+        route::delete('/{id}','destroy')->name('delete');
 
     });
 
@@ -119,4 +122,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
     // routes/web.php
     Route::patch('/orders/{order}/admin-note', [ordersController::class, 'updateAdminNote'])
         ->name('orders.update-admin-note');
+
+    Route::post('users/{user}/block', [AdminUserController::class, 'block'])->name('users.block');
+    Route::post('users/{user}/unblock', [AdminUserController::class, 'unblock'])->name('users.unblock');
+
+    Route::get('/notifications', [AdminNotificationController::class, 'index'])->name('notifications.index');
+    Route::delete('/notifications/clear', [AdminNotificationController::class, 'clear'])
+        ->name('notifications.clear');
+
 });

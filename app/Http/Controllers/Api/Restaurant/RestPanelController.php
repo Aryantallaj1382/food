@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api\Restaurant;
 
 use App\Http\Controllers\Controller;
+use App\Models\Order;
 use App\Models\Restaurant;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -14,8 +16,17 @@ class RestPanelController extends Controller
     {
         $user = auth()->user();
         $restaurant = Restaurant::where('user_id', $user->id)->first();
+        $order = Order::whereRelation('user' , 'id' , $user->id)->where('payment_status' , 'paid')
+            ->whereDate('created_at', Carbon::today())->orWhere('payment_status' , 'cash')
+            ->where('status','!=','delivery')->
+            where('status','!=','completed')->
+            where('status','!=','rejected   ')->
+            whereNotNull('time')->where('time','!=','now')->latest()->get();
+
         return api_response([
-            'is_open' => $restaurant->is_open
+            'is_open' => $restaurant->is_open,
+            'name' => $restaurant->name,
+            'order' =>$order->isEmpty() ? 0 : 1 ,
         ]);
 
     }

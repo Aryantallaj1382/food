@@ -7,18 +7,25 @@
     </div>
 
     <div class="flex items-center gap-6">
+        @php
+            $unseenCount = \App\Models\Notification::where('is_seen', 0)->count();
+        @endphp
+
         <div class="relative">
-            <a href="#" class="relative text-gray-600 hover:text-blue-600 transition">
+            <a href="{{ route('admin.notifications.index') }}" class="relative text-gray-600 hover:text-blue-600 transition">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14V11a6 6 0 10-12 0v3c0 .386-.149.735-.395 1.003L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
                 </svg>
-{{--                @if (Ticket::where('status', 'pending')->count() > 0)--}}
-{{--                    <span--}}
-{{--                        class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1">{{ Ticket::where('status', 'pending')->count() }}</span>--}}
-{{--                @endif--}}
+
+                @if($unseenCount > 0)
+                    <span class="absolute -top-1 -right-1 bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-full shadow">
+                {{ $unseenCount }}
+            </span>
+                @endif
             </a>
         </div>
+
 
         @php
             $allActive = \App\Models\Restaurant::where('is_open', 0)->count() === 0;

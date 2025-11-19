@@ -57,6 +57,16 @@
                     <span class="text-gray-800">{{ $order->restaurant?->user?->mobile }}</span>
                 </div>
                 <div>
+                    <span class="font-semibold text-gray-600">وضعیت کاربر:</span>
+
+                    @if($order->user->is_blocked)
+                        <span class="text-red-600 font-bold">بلاک شده</span>
+                    @else
+                        <span class="text-green-600 font-bold">فعال</span>
+                    @endif
+                </div>
+
+                <div>
                     <span class="font-semibold text-gray-600">یادداشت سفارش:</span>
                     <span class="text-gray-800">{{ $order->notes}}</span>
                 </div>
@@ -86,6 +96,23 @@
                 </span>
                 </div>
                 <div>
+                    <span class="font-semibold text-gray-600">تغییر وضعیت:</span>
+
+                    <div class="inline-block relative">
+                        <button class="px-3 py-1.5 bg-gray-200 text-gray-800 text-xs rounded-lg hover:bg-gray-300 transition">
+                            تغییر وضعیت
+                        </button>
+                        <ul class="absolute hidden bg-white shadow-lg rounded-lg w-40 mt-1 text-sm z-50">
+                            <li class="px-4 py-2 hover:bg-orange-100 cursor-pointer" onclick="changeOrderStatus({{ $order->id }}, 'pending')">در انتظار تایید</li>
+                            <li class="px-4 py-2 hover:bg-blue-100 cursor-pointer" onclick="changeOrderStatus({{ $order->id }}, 'processing')">در حال آماده‌سازی</li>
+                            <li class="px-4 py-2 hover:bg-emerald-100 cursor-pointer" onclick="changeOrderStatus({{ $order->id }}, 'completed')">در انتظار پیک</li>
+                            <li class="px-4 py-2 hover:bg-red-100 cursor-pointer" onclick="changeOrderStatus({{ $order->id }}, 'cancelled')">لغو شده</li>
+                            <li class="px-4 py-2 hover:bg-red-100 cursor-pointer" onclick="changeOrderStatus({{ $order->id }}, 'delivery')">تحویل پیک</li>
+                            <li class="px-4 py-2 hover:bg-red-100 cursor-pointer" onclick="changeOrderStatus({{ $order->id }}, 'rejected')">رد شده</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
                     <span class="font-semibold text-gray-600">ساعت درخواستی:</span>
                     <span class="text-gray-800">{{ $order->time ?? 'سریع ترین زمان' }}</span>
                 </div>
@@ -97,6 +124,12 @@
                     <span class="font-semibold text-gray-600">روش پرداخت:</span>
                     <span class="text-gray-800">{{ $order->payment_method_fa }}</span>
                 </div>
+                <div>
+                    <a href="{{ route('admin.users.show',$order->user->id) }}"
+                       class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+                        نمایش تراکنش های کاربر                </a>
+                </div>
+
             </div>
         </div>
 
@@ -184,4 +217,34 @@
 
 
     </div>
+    <script>
+
+        document.querySelectorAll('.inline-block.relative > button').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation(); // جلوگیری از بسته شدن خودکار
+                const ul = this.nextElementSibling;
+                ul.classList.toggle('hidden');
+            });
+        });
+
+        // بستن منو وقتی بیرون کلیک شد
+        document.addEventListener('click', function() {
+            document.querySelectorAll('.inline-block.relative ul').forEach(ul => {
+                ul.classList.add('hidden');
+            });
+        });
+
+        // تغییر وضعیت با AJAX و ریلود صفحه
+        function changeOrderStatus(orderId, status) {
+            axios.patch(`/admin/order/orders/${orderId}/status`, { status: status })
+                .then(response => {
+                    alert('وضعیت سفارش با موفقیت تغییر کرد.');
+                    location.reload();
+                })
+                .catch(err => {
+                    alert('خطا در تغییر وضعیت. دوباره تلاش کنید.');
+                    console.error(err);
+                });
+        }
+    </script>
 @endsection

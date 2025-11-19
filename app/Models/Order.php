@@ -56,8 +56,9 @@ class Order extends Model
             'processing' => 'در حال پردازش',
             'completed' => 'تکمیل‌شده',
             'cancelled' => 'لغو‌شده',
+            'delivery' => 'تحویل به پیک',
+            'rejected' => 'رد شده',
         ];
-
         return Arr::get($map, $this->status, 'نامشخص');
     }
     public function getSendingMethodFaAttribute()

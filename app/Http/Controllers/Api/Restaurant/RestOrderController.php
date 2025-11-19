@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api\Restaurant;
 
 use App\Http\Controllers\Controller;
+use App\Models\Notification;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Restaurant;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -13,6 +15,7 @@ use Morilog\Jalali\Jalalian;
 
 class RestOrderController extends Controller
 {
+
 
 
     public function index_order(Request $request)
@@ -25,16 +28,17 @@ class RestOrderController extends Controller
         $to_date = $request->input('to_date');
         $status= $request->input('status');
         $payment_method = $request->input('payment_method');
+
         $query = Order::with('user','restaurant');
         if ($user_name) {
             $query->whereHas('user', function($q) use ($user_name) {
                 $q->where('first_name', 'like', '%' . $user_name . '%')
-                ->orWhere('last_name', 'like', '%' . $user_name . '%');
+                    ->orWhere('last_name', 'like', '%' . $user_name . '%');
             });
         }
+
         if ($mobile) {
             $query->where('mobile', $mobile);
-
         }
 
         if ($status) {
@@ -44,30 +48,39 @@ class RestOrderController extends Controller
         if ($payment_method) {
             $query->where('payment_method', $payment_method);
         }
+
         if ($from_date && $to_date) {
-
-            $fromArray = CalendarUtils::toGregorian(...explode('/', $from_date));
-            $toArray   = CalendarUtils::toGregorian(...explode('/', $to_date));
-
-            $fromGregorian = $fromArray[0] . '-' . $fromArray[1] . '-' . $fromArray[2] . ' 00:00:00';
-            $toGregorian   = $toArray[0] . '-' . $toArray[1] . '-' . $toArray[2] . ' 23:59:59';
-
-            $query->whereBetween('created_at', [$fromGregorian, $toGregorian]);
+            // کاربر فیلتر تاریخ داده، از آن استفاده کن
+            $from = Carbon::parse($from_date)->startOfDay();
+            $to = Carbon::parse($to_date)->endOfDay();
+            $query->whereBetween('created_at', [$from, $to]);
+        } else {
+            // پیش‌فرض: فقط سفارش‌های امروز
+            $query->whereDate('created_at', Carbon::today());
         }
+        $rest = Restaurant::where('user_id', $user->id)->first();
 
-        $orders = $query->whereRelation('user' , 'id' , $user->id)->where('payment_status' , 'paid')->orWhere('payment_status' , 'cash')->latest()->paginate(15);
+        $orders = $query->where('restaurant_id',$rest->id)
+            ->where(function($q){
+                $q->where('payment_status', 'paid')
+                    ->orWhere('payment_status', 'cash');
+            })
+            ->latest()
+            ->paginate(15);
+
         $orders->getCollection()->transform(function($order){
             return [
                 'id' => $order->id,
                 'full_name' => $order->user->name,
                 'created' => $order->created_at ? Jalalian::fromCarbon($order->created_at)->format('Y/m/d H:i') : null,
                 'payment_method' => $order->payment_method,
-                'total_amount' => $order->total_amount,
+                'total_amount' => (int)$order->total_amount,
                 'sending_method' => $order->sending_method,
                 'status' => $order->status,
-                'time' => $order->time ,
-                'get_ready_time' =>  $order->get_ready_time ?? $order->time,
-            ];
+                'time' => $order->time,
+                'get_ready_time' => $order->created_at && Carbon::parse($order->created_at)->isToday()
+                    ? ($order->get_ready_time ?? $order->time)
+                    : 'now',            ];
         });
         return api_response($orders, 'داده ها با موفقیت ارسال شدند');
     }
@@ -79,6 +92,10 @@ class RestOrderController extends Controller
         $items = OrderItem::where('order_id', $order->id)->get();
         $price_item = OrderItem::where('order_id', $order->id)->sum('price');
 
+        $isFirstFromRestaurant = !Order::where('user_id', $order->user_id)
+            ->where('restaurant_id', $order->restaurant_id)
+            ->where('id', '<', $order->id)
+            ->exists();
 
         if (!$order) {
             return response()->json([
@@ -101,12 +118,13 @@ class RestOrderController extends Controller
             'status'=>$order->status,
             'time'=>$order->time ,
 
-            'admin_note'=>'این توضیح ادمین است',
+            'admin_note'=>$order->admin_note,
 
             'send_price'=>$order->send_price,
             'discount' => 5,
             'total_price'=>$price_item,
             'total_amount'=>$order->total_amount,
+            'isFirst' => $isFirstFromRestaurant, // true/false
 
             'payment_method'=>$order->payment_method,
             'message' => $firstOrder && $firstOrder->id === $order->id
@@ -146,13 +164,43 @@ class RestOrderController extends Controller
         $getReadyTime = null;
         if ($request->time) {
             $getReadyTime = Carbon::now('Asia/Tehran')->addMinutes($request->time)->format('H:i');
+            $getReadyTimeJalali = Jalalian::fromDateTime($getReadyTime)->format('H:i');
+
+
+            if ($order->sending_method == 'in_person')
+            {
+                $mobile = $order->user->mobile;
+                $data = [
+                    'readytime' =>$getReadyTimeJalali,
+                ];
+                sms('j5ztbv1xqsaqv6x' ,$mobile , $data );
+            }
+            if ($order->sending_method == 'pike')
+            {
+                $mobile = $order->user->mobile;
+                $data = [
+                    'name' =>$order->user->name ,
+                ];
+                sms('0xxkazsqtxh2mc2' ,$mobile , $data );
+            }
+
         }
 
+        $user =auth()->user();
         $order->update([
             'status' => 'processing',
             'restaurant_accept' => 1,
             'admin_note' => $request->admin_note,
             'get_ready_time' => $getReadyTime,
+        ]);
+
+        $rest = Restaurant::where('user_id', $user->id)->first();
+        $name = $rest->name;
+        $message = $name.' سفارش '.$request->order_id.' را تایید کرد';
+
+        Notification::query()->create([
+            'text' => $message,
+            'is_seen' => 0,
         ]);
 
         return api_response([], 'با موفقیت تایید شد');
@@ -164,6 +212,24 @@ class RestOrderController extends Controller
             'order_id' => 'required',
             'status' => 'required',
 
+        ]);
+        $user = auth()->user();
+        $rest = Restaurant::where('user_id', $user->id)->first();
+        $name = $rest->name;
+
+        if ($request->status == 'completed') {
+            $message = $name.' سفارش '.$request->order_id.' را تکمیل کرد و درخواست پیک داد';
+        }
+        if ($request->status == 'delivery') {
+            $message = $name.' سفارش '.$request->order_id.' را تحویل پیک داد';
+        }
+        if ($request->status == 'rejected') {
+            $message = $name.' سفارش '.$request->order_id.' را رد کرد';
+
+        }
+        Notification::query()->create([
+            'text' => $message,
+            'is_seen' => 0,
         ]);
         $order = Order::find($request->order_id);
         $order->update([

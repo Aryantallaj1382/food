@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Address;
 use App\Models\DiscountCode;
 use App\Models\FoodOption;
+use App\Models\Notification;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Restaurant;
@@ -27,7 +28,7 @@ class FinalOrderController extends Controller
             'restaurant_discount' => 'nullable',
             'discount_code' => 'nullable|string',
             'phone' => 'nullable|string',
-            'mobile' => 'required|string',
+            'mobile' => 'nullable|string',
             'gateway' => 'nullable|string',
             'notes' => 'nullable|string',
             'time' => 'nullable',
@@ -37,7 +38,7 @@ class FinalOrderController extends Controller
             'restaurantId' => 'required|exists:restaurants,id',
             'address_id' => 'required|exists:addresses,id',
             'items' => 'required|array|min:1',
-            'items.*.id' => 'required|exists:foods,id',
+            'items.*.id' => 'required',
             'items.*.quantity' => 'required|integer|min:1',
         ]);
         $rest = Restaurant::find($request->restaurantId);
@@ -54,7 +55,7 @@ class FinalOrderController extends Controller
             'discount_code' => $request->discount_code,
             'restaurant_discount' => $request->restaurant_discount,
             'phone' => $request->phone,
-            'mobile' => $request->mobile,
+            'mobile' => $user->mobile ,
             'time' => $request->time ?? 'now',
             'send_price' => $request->send_price,
             'sending_method' => $request->sending_method,
@@ -197,6 +198,11 @@ class FinalOrderController extends Controller
 //            'restaurant' => $order->restaurant->name,
 //        ];
 //        sms('9by4knaewe6rvmo' ,'09902866182' , $data );
+        $message  = 'یک سفارش جدید برای '.$rest->name.' ثبت شد ';
+        Notification::query()->create([
+            'text' => $message,
+            'is_seen' => 0,
+        ]);
 
         return api_response([
             'order_id' => $order->id,
@@ -208,6 +214,9 @@ class FinalOrderController extends Controller
     {
         $address= Address::find($request->address_id);
         $rest= Restaurant::find($request->restaurant_id);
+        if (!$rest->latitude || !$rest->longitude ||  $address->latitude || $address->longitude){
+            return api_response([],'طول و عرض جغرافیایی یافت نشد');
+        }
         $distance = distanceKm($rest->latitude, $rest->longitude, $address->latitude, $address->longitude);
         $send_price = $rest->send_price * $distance;
         return api_response((int)$send_price);

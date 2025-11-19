@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\Address;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -21,6 +22,10 @@ class AdminUserController extends Controller
                     ->orWhere('mobile', 'like', "%{$search}%");
             });
         }
+        if (!is_null($request->input('is_blocked'))) {
+            $query->where('is_blocked', $request->input('is_blocked'));
+        }
+
         if ($walletFilter = $request->input('wallet_balance')) {
             switch ($walletFilter) {
                 case 'has_balance':
@@ -51,7 +56,8 @@ class AdminUserController extends Controller
     {
         $user = User::findOrFail($id);
         $orders = Order::where('user_id', $id)->paginate(10);
-        return view('admin.users.show', compact(['user', 'orders']));
+        $address = Address::where('user_id', $id)->get();
+        return view('admin.users.show', compact(['user', 'orders', 'address']));
     }
     public function destroy($id)
     {
@@ -86,4 +92,23 @@ class AdminUserController extends Controller
 
         return redirect()->route('admin.users.index')->with('success', 'کاربر جدید با موفقیت ایجاد شد ✅');
     }
+    public function block(Request $request, User $user)
+    {
+        $request->validate(['reason'=>'required|string']);
+        $user->update([
+            'is_blocked' => true,
+            'block_reason' => $request->reason,
+        ]);
+        return response()->json(['success'=>true]);
+    }
+
+    public function unblock(User $user)
+    {
+        $user->update([
+            'is_blocked' => false,
+            'block_reason' => null,
+        ]);
+        return response()->json(['success'=>true]);
+    }
+
 }

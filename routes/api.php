@@ -50,6 +50,7 @@ Route::prefix('restaurant')->controller(RestaurantController::class)->group(func
    Route::get('/show/{id}', 'show');
    Route::get('/menu/{id}', 'menu');
    Route::get('/times/{id}', 'times');
+   Route::put('/products/update/{id}', [ProductsMenuController::class, 'updateFood']);
    Route::get('/time/{id}', 'getAvailableTimes');
    Route::get('/comments/{id}', 'comments');
    Route::post('/toggle/{id}', 'toggle')->middleware('auth:sanctum');
@@ -62,7 +63,7 @@ Route::prefix('order')->controller(FinalOrderController::class)->group(function 
 
 });
 Route::get('/test', [FinalOrderController::class, 'test']);
-//Route::post('/introduction', [\App\Http\Controllers\Api\RestaurantIntroductionController::class, 'store']);
+Route::post('/introduction', [\App\Http\Controllers\Api\RestaurantIntroductionController::class, 'store']);
 
 
 

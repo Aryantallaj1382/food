@@ -53,7 +53,6 @@
                             <th class="py-4 px-3 text-xs font-bold">پرداخت</th>
                             <th class="py-4 px-3 text-xs font-bold">تاریخ</th>
                             <th class="py-4 px-3 text-xs font-bold">وضعیت</th>
-                            <th class="py-4 px-3 text-xs font-bold">توضیحات</th>
                             <th class="py-4 px-3 text-xs font-bold">توضیحات مدیر</th>
                             <th class="py-4 px-3 text-xs font-bold">عملیات</th>
                         </tr>
@@ -82,11 +81,7 @@
                                         {{ $order->status_fa }}
                                     </span>
                                 </td>
-                                <td class="py-4 px-3 text-xs">
-                                    <span class="text-gray-600">
-                                        {{ \Illuminate\Support\Str::limit($order->notes, 30, '...') }}
-                                    </span>
-                                </td>
+
                                 <td class="py-4 px-3 text-xs">
                                     <span class="text-gray-600">
                                         {{ \Illuminate\Support\Str::limit($order->admin_note, 30, '...') }}
@@ -98,6 +93,19 @@
                                             class="px-3 py-1.5 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700 transition">
                                         ویرایش توضیحات
                                     </button>
+                                    <div class="inline-block relative">
+                                        <button class="px-3 py-1.5 bg-gray-200 text-gray-800 text-xs rounded-lg hover:bg-gray-300 transition">
+                                            تغییر وضعیت
+                                        </button>
+                                        <ul class="absolute hidden bg-white shadow-lg rounded-lg w-40 mt-1 text-sm z-50">
+                                            <li class="px-4 py-2 hover:bg-orange-100 cursor-pointer" onclick="changeOrderStatus({{ $order->id }}, 'pending')">در انتظار تایید</li>
+                                            <li class="px-4 py-2 hover:bg-blue-100 cursor-pointer" onclick="changeOrderStatus({{ $order->id }}, 'processing')">در حال آماده‌سازی</li>
+                                            <li class="px-4 py-2 hover:bg-emerald-100 cursor-pointer" onclick="changeOrderStatus({{ $order->id }}, 'completed')">در انتظار پیک</li>
+                                            <li class="px-4 py-2 hover:bg-red-100 cursor-pointer" onclick="changeOrderStatus({{ $order->id }}, 'cancelled')">لغو شده</li>
+                                            <li class="px-4 py-2 hover:bg-red-100 cursor-pointer" onclick="changeOrderStatus({{ $order->id }}, 'delivery')">تحویل پیک</li>
+                                            <li class="px-4 py-2 hover:bg-red-100 cursor-pointer" onclick="changeOrderStatus({{ $order->id }}, 'rejected')">رد شده</li>
+                                        </ul>
+                                    </div>
 
                                     <a href="{{ route('admin.restaurants.items', $order->id) }}"
                                        class="px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition inline-block">
@@ -172,13 +180,41 @@
             axios.patch(`/admin/orders/${orderId}/admin-note`, { admin_note: note })
                 .then(response => {
                     closeAdminNoteModal();
-                    toastr.success('توضیحات مدیر با موفقیت ذخیره شد.');
-
-                    // ← فقط این خط اضافه شد
                     setTimeout(() => location.reload(), 1200);
                 })
                 .catch(err => {
-                    toastr.error('خطا در ذخیره‌سازی. دوباره تلاش کنید.');
+                    alert('خطا در ذخیره‌سازی. دوباره تلاش کنید.');
                 });
         });
+
+        document.querySelectorAll('.inline-block.relative > button').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation(); // جلوگیری از بسته شدن خودکار
+                const ul = this.nextElementSibling;
+                ul.classList.toggle('hidden');
+            });
+        });
+
+        // بستن منو وقتی بیرون کلیک شد
+        document.addEventListener('click', function() {
+            document.querySelectorAll('.inline-block.relative ul').forEach(ul => {
+                ul.classList.add('hidden');
+            });
+        });
+
+        // تغییر وضعیت با AJAX و ریلود صفحه
+        function changeOrderStatus(orderId, status) {
+            axios.patch(`/admin/order/orders/${orderId}/status`, { status: status })
+                .then(response => {
+                    alert('وضعیت سفارش با موفقیت تغییر کرد.');
+                    location.reload();
+                })
+                .catch(err => {
+                    alert('خطا در تغییر وضعیت. دوباره تلاش کنید.');
+                    console.error(err);
+                });
+        }
+
+
+
     </script>@endsection

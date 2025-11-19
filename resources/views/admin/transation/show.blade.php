@@ -55,6 +55,8 @@
                     <th class="py-3 px-4 font-semibold">نوع تراکنش</th>
                     <th class="py-3 px-4 font-semibold">وضعیت</th>
                     <th class="py-3 px-4 font-semibold">مبلغ (تومان)</th>
+                    <th class="py-3 px-4 font-semibold">توضیحات</th>
+                    <th class="py-3 px-4 font-semibold">کد تراکنش</th>
                     <th class="py-3 px-4 font-semibold">تاریخ</th>
                 </tr>
                 </thead>
@@ -75,6 +77,8 @@
                             @endif
                         </td>
                         <td class="py-3 px-4">{{ number_format($transaction->amount) }}</td>
+                        <td class="py-3 px-4">{{$transaction->description }}</td>
+                        <td class="py-3 px-4">{{$transaction->tracking_code }}</td>
                         <td class="py-3 px-4">{{ $transaction->created_at->format('Y-m-d H:i') }}</td>
                     </tr>
                 @empty
