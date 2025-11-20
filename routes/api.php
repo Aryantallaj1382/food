@@ -28,6 +28,7 @@ Route::prefix('auth')->group(function () {
 });
 Route::get('/search', [\App\Http\Controllers\Api\Food\SearchController::class,'search']);
 Route::get('/main', [\App\Http\Controllers\Api\MainController::class,'index']);
+Route::get('/category', [\App\Http\Controllers\Api\MainController::class,'category']);
 Route::get('/near_restaurant', [\App\Http\Controllers\Api\Profile\nearestRestaurantsController::class,'nearestRestaurants']);
 
 Route::prefix('profile')->middleware('auth:sanctum')->controller(\App\Http\Controllers\Api\Profile\ProfileController::class)->group(function () {
@@ -44,6 +45,13 @@ Route::prefix('profile/address')->middleware('auth:sanctum')->controller(\App\Ht
     Route::post('/update', 'update');
     Route::post('/update_is_main', 'update_is_main');
     Route::delete('/{id}', 'delete');
+
+});
+
+Route::prefix('feedback')->middleware('auth:sanctum')->controller(\App\Http\Controllers\Api\Profile\FeedBackController::class)->group(function () {
+    Route::post('/', 'store');
+    Route::get('/', 'index');
+
 
 });
 Route::prefix('restaurant')->controller(RestaurantController::class)->group(function () {
@@ -90,6 +98,10 @@ Route::prefix('restaurant')->middleware('auth:sanctum')->group(function () {
 
     Route::prefix('/report')->controller(\App\Http\Controllers\Api\Restaurant\RestReportController::class)->group(function () {
         Route::get('/', 'index');
+    });
+    Route::prefix('/discount')->controller(\App\Http\Controllers\Api\Restaurant\RestDiscountController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::post('/store', 'store');
     });
 
     Route::prefix('/panel')->controller(\App\Http\Controllers\Api\Restaurant\RestPanelController::class)->group(function () {

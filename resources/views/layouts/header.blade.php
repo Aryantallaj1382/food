@@ -28,14 +28,13 @@
 
 
         @php
-            $allActive = \App\Models\Restaurant::where('is_open', 0)->count() === 0;
-            $targetStatus = $allActive ? 1 : 0;
+            $targetStatus = \App\Models\SystemSetting::where('kay', 'system_status')->value('value');
         @endphp
         <form id="toggleAllForm" action="{{ route('admin.restaurants.toggleAll') }}" method="POST" class="ml-4 inline-flex items-center">
             @csrf
             <label class="inline-flex items-center cursor-pointer">
                 <input type="checkbox" id="toggleSwitch" class="sr-only peer"
-                    {{ $allActive ? 'checked' : '' }}>
+                    {{ $targetStatus ? 'checked' : '' }}>
                 <div class="relative w-9 h-5
                     bg-gray-400
                     peer-focus:outline-none
@@ -52,11 +51,11 @@
                     after:rounded-full
                     after:h-4 after:w-4
                     after:transition-all
-                    {{ $allActive ? 'peer-checked:bg-green-600 bg-green-400':'peer-checked:bg-red-600 bg-red-400' }}">
+                    {{ $targetStatus ? 'peer-checked:bg-green-600 bg-green-400':'peer-checked:bg-red-600 bg-red-400' }}">
                 </div>
 
                 <span class="select-none ms-3 text-sm font-medium text-heading">
-            {{ $allActive ? 'همه ی رستوران ها فعال هستند' : 'همه ی رستوران ها غیر فعال هستند' }}
+            {{ $targetStatus ? 'همه ی رستوران ها فعال هستند' : 'همه ی رستوران ها غیر فعال هستند' }}
         </span>
             </label>
             <input type="hidden" name="status" value="{{ $targetStatus }}" id="statusInput">
@@ -68,7 +67,7 @@
                 const statusInput = document.getElementById('statusInput');
 
                 // همیشه مقدار مخالف وضعیت فعلی رو بفرست
-                const allCurrentlyActive = {{ $allActive ? 'true' : 'false' }};
+                const allCurrentlyActive = {{ $targetStatus ? 'true' : 'false' }};
                 const newStatus = this.checked ? 1 : 0;
 
 

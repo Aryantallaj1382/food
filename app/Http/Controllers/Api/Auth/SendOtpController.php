@@ -40,7 +40,7 @@ class SendOtpController extends Controller
             return api_response([
                 'remain' => $remaining],
                 "لطفاً پس از گذشت " . $remaining . " ثانیه دوباره تلاش کنید."
-                , 429);
+                , 200);
         }
 
         $code = random_int(10000, 99999);

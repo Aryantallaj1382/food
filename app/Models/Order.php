@@ -49,6 +49,7 @@ class Order extends Model
 
         return Arr::get($map, $this->payment_status, 'نامشخص');
     }
+
     public function getStatusFaAttribute()
     {
         $map = [

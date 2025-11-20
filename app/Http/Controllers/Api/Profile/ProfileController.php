@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Profile;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class ProfileController extends Controller
 {
@@ -28,13 +29,19 @@ class ProfileController extends Controller
             'first_name' => 'nullable',
             'last_name' => 'nullable',
             'phone' => 'nullable',
+            'password' => 'nullable',
         ]);
         $user = auth()->user();
-        $user->update([
+        $updateData =  [
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'phone' => $request->phone,
-        ]);
+        ];
+        if ($request->filled('password')) {
+            $updateData['password'] = Hash::make($request->password);
+        }
+        $user->update($updateData);
+
         return api_response([], 'اطلاعات ویرایش شد');
     }
 }

@@ -51,8 +51,8 @@ class ProductsMenuController extends controller
             $query->where('food_categories_id',$category);
         }
 
-        $foods = $query->orderBy('created_at', 'desc')->paginate(5);
-        $foods->getCollection()->transform(function ($food) {
+        $foods = $query->orderBy('created_at', 'desc')->get();
+        $foods->map(function ($food) {
             return  [
                 'id' => $food->id,
                 'name' => $food->name,

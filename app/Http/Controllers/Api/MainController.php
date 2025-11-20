@@ -12,9 +12,16 @@ use Illuminate\Http\Request;    use App\Models\Food;
 
 class MainController extends Controller
 {
+    public function category()
+    {
+        $categories = Category::where('slug' , '!=' , 'additive')->select(['id','name','icon','slug'])->get()->sortBy('id')->values();
+        return api_response(
+            $categories,
+        );
+    }
     public function index()
     {
-        $categories = Category::where('slug' , '!=' , 'additive')->select(['id','name','icon','slug'])->get();
+        $categories = Category::where('slug' , '!=' , 'additive')->select(['id','name','icon','slug'])->get()->sortByDesc('id')->values();
 
         $sliders = Slider::orderBy('order', 'asc')->select(['id','image','link', 'order'])->get();
 
@@ -49,7 +56,7 @@ class MainController extends Controller
 
 
 
-        $topRestaurants = Restaurant::whereNotNull('discount_percentage')
+        $restaurants = Restaurant::whereNotNull('discount_percentage')
             ->orderByDesc('discount_percentage')
             ->take(7)
             ->get()->map(function ($restaurant) {
@@ -65,12 +72,30 @@ class MainController extends Controller
                         'rate_count' => $restaurant->rate_count,
                 ];
             });
+        $topRestaurants = Restaurant::withAvg('comments', 'rating')
+            ->orderByDesc('comments_avg_rating')
+            ->take(7)
+            ->get()
+            ->map(function ($restaurant) {
+                return [
+                    'id' => $restaurant->id,
+                    'image' => $restaurant->image,
+                    'is_open' => $restaurant->is_open,
+                    'name' => $restaurant->name,
+                    'rate' => (int)$restaurant->comments_avg_rating,   // ⭐ بهترین امتیاز
+                    'food_image' => optional($restaurant->foods->first())->image,
+                    'discount_percentage' => $restaurant->discount_percentage,
+                    'rate_count' => $restaurant->comments()->count(), // تعداد کامنت‌ها
+                ];
+            });
+
 
         return api_response([
             'slider' => $sliders,
             'categories' => $categories,
-            'restaurants' => $topRestaurants,
+            'restaurants' => $restaurants,
             'foods' => $foods,
+            'top_restaurants' => $topRestaurants,
         ]);
     }
 }

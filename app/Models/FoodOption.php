@@ -11,6 +11,8 @@ class FoodOption extends Model
         'price' => 'int',
         'price_discount' => 'int',
     ];
+    protected $appends = ['discount_percentage','discount'];
+
     public function food()
     {
         return $this->belongsTo(Food::class);

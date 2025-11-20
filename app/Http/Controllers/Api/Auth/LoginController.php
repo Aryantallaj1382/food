@@ -14,7 +14,7 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'mobile' => 'required',
+            'mobile' => 'required|regex:/^[0-9]{10,15}$/',
             'password' => 'nullable',
             'otp' => 'nullable',
         ]);

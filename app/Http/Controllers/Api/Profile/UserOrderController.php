@@ -3,23 +3,24 @@
 namespace App\Http\Controllers\Api\Profile;
 
 use App\Models\Order;
+use Morilog\Jalali\Jalalian;
 
 class UserOrderController
 {
     public  function  index()
     {
-        $orders = Order::where('user_id',auth()->user()->id)->paginate();
+        $orders = Order::where('user_id',auth()->user()->id)->where('payment_status','paid')->orWhere('payment_status','cash')->paginate(10);
         $orders->getCollection()->transform(function($order){
            return [
                 'id' => $order->id,
                 'restaurant_name' => $order->restaurant->name,
                 'image' => $order->restaurant->image,
-                'date' => $order->created_at,
+               'date' => Jalalian::fromCarbon($order->created_at)->format('Y/m/d , H:i'),
                 'payment_method' => $order->payment_method,
                 'sending_method' => $order->sending_method,
-                'payment_status' => $order->payment_status,
+                'payment_status' => $order->pay_status_fa,
                 'address' => $order->adress->address,
-               'total_amount' => $order->total_amount,
+                'total_amount' =>(int) $order->total_amount,
            ];
         });
         return api_response($orders);
@@ -28,15 +29,18 @@ class UserOrderController
     public function show($id)
     {
         $order = Order::find($id);
+        if(!$order){
+            return api_response([],'order not found',404);
+        }
         $o = [
             'id' => $order->id,
             'restaurant_name' => $order->restaurant->name,
             'image' => $order->restaurant->image,
             'date' => $order->created_at,
             'price' => [
-                'total_amount_with_out_discount' => $order->total_amount,
-                'send_price' => $order->send_price,
-                'total_price' => $order->total_price,
+                'total_amount_with_out_discount' => (int)$order->total_amount,
+                    'send_price' => (int)$order->send_price,
+                'total_price' => (int)$order->total_price,
                 'discount' => 0,
             ],
             'address' => $order->adress->address,
@@ -49,9 +53,9 @@ class UserOrderController
 
                     'id' => $item->id,
                     'name' => $item->option?->food?->name,
-                    'price' => $item->price,
-                    'quantity' => $item->quantity,
-                    'dish_quantity' => $item->dish_quantity,
+                    'price' => (int)$item->price,
+                    'quantity' => (int)$item->quantity,
+                    'dish_quantity' =>(int)$item->dish_quantity,
                 ];
             }),
         ];

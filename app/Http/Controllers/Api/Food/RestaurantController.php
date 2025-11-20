@@ -33,28 +33,37 @@ class RestaurantController extends Controller
             'longitude' => $restaurant->longitude,
             'work_time' => $restaurant->work_time,
             'discount' => $restaurant->discount ,
-            'khosh' => 100 ,
+            'khosh' =>$restaurant->minimum_price ,
             'bg' =>null,
-            'rate' =>4,
+            'rate' =>round($restaurant->rate),
             'min_cart' =>(int)$restaurant->minimum_price,
-            'text' =>'ارسال به خوابگاه نداریم',
-            'pay_type' =>['پرداخت در محل','پرداخت آنلاین'],
+            'text' =>$restaurant->text,
+            'pay_type' =>$restaurant->Pay_type,
             'latitude' => $restaurant->latitude,
             'get_ready_minute' => $restaurant->grt_ready_minute,
             'discount_percentage' =>(int)$restaurant->discount_percentage,
         ];
         return api_response($return);
     }
-    public function menu($id)
+    public function menu(Request $request, $id)
     {
+        $search = $request->input('search');
+
         $restaurant = Restaurant::with('foods.category', 'foods.options')->find($id);
 
         if (!$restaurant) {
             return api_response([], 'Restaurant not found', 404);
         }
 
+        // 🔹 فیلتر بر اساس نام غذا
+        $foods = $restaurant->foods;
+        if ($search) {
+            $foods = $foods->filter(function ($food) use ($search) {
+                return stripos($food->name, $search) !== false;
+            });
+        }
 
-        $grouped = $restaurant->foods
+        $grouped = $foods
             ->groupBy(function ($food) {
                 return $food->category->name ?? 'بدون دسته‌بندی';
             })
@@ -62,12 +71,13 @@ class RestaurantController extends Controller
                 $category = $foods->first()->category;
                 $categoryId = $category->id ?? null;
                 $categoryImage = $category->icon ?? null;
-
                 return [
                     'category_id' => $categoryId,
                     'category' => $categoryName,
                     'image' => $categoryImage,
-                    'items' => $foods->map(function ($food) {
+                    'items' => $foods
+                        ->sortByDesc('is_available')
+                        ->map(function ($food) {
                         $price = $food->options->min('price') ?? null;
                         $discountPrice = $food->options->min('price_discount') ?? null;
                         $discountPercent = null;
@@ -75,7 +85,7 @@ class RestaurantController extends Controller
                             $discountPercent = round((($price - $discountPrice) / $price) * 100);
                         }
 
-                          return [
+                        return [
                             'id' => $food->id,
                             'name' => $food->name,
                             'image' => $food->image,
@@ -89,14 +99,14 @@ class RestaurantController extends Controller
                                 if ($option->price && $option->price_discount) {
                                     $discountPercent = round((($option->price - $option->price_discount) / $option->price) * 100);
                                 }
-                                $one = $food->options()->count() > 1 ?false : true;
+                                $one = $food->options()->count() > 1 ? false : true;
 
                                 return [
                                     'a' => $one,
                                     'id' => $option->id,
-                                    'name' => $option->name  ,
-                                    'dish' => (int)$option->dish  ,
-                                    'dish_price' => (int)$option->dish_price  ,
+                                    'name' => $option->name,
+                                    'dish' => (int)$option->dish,
+                                    'dish_price' => (int)$option->dish_price,
                                     'food' => $option->food->name,
                                     'price' => $option->price,
                                     'discountPrice' => $option->discount,
@@ -147,7 +157,7 @@ class RestaurantController extends Controller
                'id' => $comment->id,
                'text' => $comment->text,
                'rating' => $comment->rating,
-               'user' => $comment->user->name,
+               'user' => $comment->user->first_name,
                'dislikesCount' => $comment->dislikesCount(),
                'likesCount' => $comment->likesCount(),
                'is_liked' => $user

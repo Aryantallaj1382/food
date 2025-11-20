@@ -12,14 +12,12 @@ class AdminReportRestaurantController extends Controller
     public function toggleAll(Request $request)
     {
         $status = $request->input('status'); // همیشه 0 یا 1
-
         if (!in_array($status, [0, 1])) {
             return back()->with('error', 'وضعیت نامعتبر است.');
         }
 
-        \App\Models\Restaurant::query()->update(['is_open' => $status]);
-
-        $message = $status == 1 ? 'همه رستوران‌ها فعال شدند.' : 'همه رستوران‌ها غیرفعال شدند.';
+       $a =  \App\Models\SystemSetting::where('kay','system_status')->update(['value' => (string)$status]);
+       $message = $status == 1 ? 'همه رستوران‌ها فعال شدند.' : 'همه رستوران‌ها غیرفعال شدند.';
         return back()->with('success', $message);
     }
 

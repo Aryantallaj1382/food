@@ -77,6 +77,7 @@ class RestOrderController extends Controller
                 'total_amount' => (int)$order->total_amount,
                 'sending_method' => $order->sending_method,
                 'status' => $order->status,
+                
                 'time' => $order->time,
                 'get_ready_time' => $order->created_at && Carbon::parse($order->created_at)->isToday()
                     ? ($order->get_ready_time ?? $order->time)
@@ -126,6 +127,7 @@ class RestOrderController extends Controller
             'total_amount'=>$order->total_amount,
             'isFirst' => $isFirstFromRestaurant, // true/false
 
+            'sending_method' => $order->sending_method,
             'payment_method'=>$order->payment_method,
             'message' => $firstOrder && $firstOrder->id === $order->id
                 ? 'این اولین سفارش شما بوده 🎉'
