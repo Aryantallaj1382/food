@@ -63,6 +63,7 @@ class AdminFoodController extends Controller
     {
         $request->validate([
             'name'        => 'required|string|max:255',
+            'about_category'        => 'nullable|string|max:255',
             'image'       => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'food_categories_id'   => 'required',
             'description' => 'nullable|string',
@@ -73,6 +74,7 @@ class AdminFoodController extends Controller
             'options.*.price'           => 'required|numeric|min:0',
             'options.*.price_discount'  => 'nullable|numeric|min:0',
             'options.*.is_available'    => 'required|in:0,1',
+            'options.*.dish'      => 'nullable|numeric|min:0',
             'options.*.dish_price'      => 'nullable|numeric|min:0',
         ]);
 
@@ -93,6 +95,7 @@ class AdminFoodController extends Controller
                 'price'           => $option['price'],
                 'price_discount'  => $option['price_discount'] ?? null,
                 'is_available'    => $option['is_available'] ?? 0,
+                'dish'      => $option['dish'] ?? null,
                 'dish_price'      => $option['dish_price'] ?? null,
             ]);
         }

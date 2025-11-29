@@ -37,6 +37,31 @@
 
 
         </ul>
+
+        <ul class="space-y-2 text-sm">
+            <li>
+                <a href="{{route('admin.restaurant-discounts.index')}}"
+                   class="flex items-center gap-3 px-4 py-3 rounded-lg transition
+                          hover:bg-blue-50 hover:text-blue-600 font-medium group">
+                    <span class="material-icons text-gray-500 group-hover:text-blue-600">درخواست تخفیف رستوران</span>
+
+                </a>
+            </li>
+
+
+        </ul>
+        <ul class="space-y-2 text-sm">
+            <li>
+                <a href="{{route('admin.feedback.index')}}"
+                   class="flex items-center gap-3 px-4 py-3 rounded-lg transition
+                          hover:bg-blue-50 hover:text-blue-600 font-medium group">
+                    <span class="material-icons text-gray-500 group-hover:text-blue-600">دیدگاه ها</span>
+
+                </a>
+            </li>
+
+
+        </ul>
         <ul class="space-y-2 text-sm">
             <li>
                 <a href="{{route('admin.foods.activate')}}"
@@ -151,6 +176,18 @@
                    class="flex items-center gap-3 px-4 py-3 rounded-lg transition
                           hover:bg-blue-50 hover:text-blue-600 font-medium group">
                     <span class="material-icons text-gray-500 group-hover:text-blue-600">گروه ها</span>
+
+                </a>
+            </li>
+
+
+        </ul>
+        <ul class="space-y-2 text-sm">
+            <li>
+                <a href="{{route('admin.categories.show')}}"
+                   class="flex items-center gap-3 px-4 py-3 rounded-lg transition
+                          hover:bg-blue-50 hover:text-blue-600 font-medium group">
+                    <span class="material-icons text-gray-500 group-hover:text-blue-600">دسته بندی ها</span>
 
                 </a>
             </li>

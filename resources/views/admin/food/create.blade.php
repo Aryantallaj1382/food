@@ -14,7 +14,8 @@
                     </ul>
                 </div>
             @endif
-            <form action="{{ route('admin.foods.store', $restaurant->id) }}" method="POST" enctype="multipart/form-data" id="foodForm">
+            <form action="{{ route('admin.foods.store', $restaurant->id) }}" method="POST" enctype="multipart/form-data"
+                  id="foodForm">
                 @csrf
 
                 <!-- فیلدهای اصلی -->
@@ -42,19 +43,27 @@
                     </div>
 
                     <div>
-                        <label class="block text-gray-700 font-medium mb-2">دسته‌بندی</label>
+                        <label class="block text-gray-700 font-medium mb-2">گروه ها</label>
                         <select name="food_categories_id" class="w-full p-3 border rounded-lg">
                             <option value="">بدون دسته</option>
-                            @foreach(\App\Models\Category::all() as $cat)
-                                <option value="{{ $cat->id }}" {{ old('food_categories_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                            @foreach(\App\Models\FoodCategory::all() as $cat)
+                                <option
+                                    value="{{ $cat->id }}" {{ old('food_categories_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
                             @endforeach
                         </select>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">توضیحات دسته بندی</label>
+                        <input type="text" name="about_category" value="{{ old('about_category') }}"
+                               class="w-full p-3 border rounded-lg @error('about_category') border-red-500 @enderror">
+                        @error('about_category') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
 
                 <div class="mb-8">
                     <label class="block text-gray-700 font-medium mb-2">توضیحات</label>
-                    <textarea name="description" rows="3" class="w-full p-3 border rounded-lg">{{ old('description') }}</textarea>
+                    <textarea name="description" rows="3"
+                              class="w-full p-3 border rounded-lg">{{ old('description') }}</textarea>
                 </div>
 
                 <!-- بخش گزینه‌ها (دینامیک با JS) -->
@@ -76,11 +85,12 @@
                                        class="p-2 border rounded-md text-sm" required>
 
                                 <!-- قیمت -->
-                                <input type="number" name="options[0][price]" placeholder="قیمت"
+                                <input type="number" name="options[0][price]" placeholder="  قیمت قدیم"
                                        class="p-2 border rounded-md text-sm" min="0" step="100" required>
 
                                 <!-- قیمت تخفیفی -->
-                                <input type="number" name="options[0][price_discount]" placeholder="قیمت تخفیفی (اختیاری)"
+                                <input type="number" name="options[0][price_discount]"
+                                       placeholder="قیمت تخفیفی "
                                        class="p-2 border rounded-md text-sm" min="0" step="100">
 
                                 <!-- موجود بودن -->
@@ -92,7 +102,9 @@
                                 </div>
 
                                 <!-- قیمت ظرف -->
-                                <input type="number" name="options[0][dish_price]" placeholder="تعداد سفارش برای هر ظرف"
+                                <input type="number" name="options[0][dish]" placeholder="تعداد سفارش برای هر ظرف"
+                                       class="p-2 border rounded-md text-sm">
+                                <input type="number" name="options[0][dish_price]" placeholder="قیمت ظرف"
                                        class="p-2 border rounded-md text-sm">
                             </div>
 

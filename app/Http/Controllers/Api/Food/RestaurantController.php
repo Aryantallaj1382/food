@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Comment;
 use App\Models\CommentLike;
 use App\Models\Food;
+use App\Models\FoodCategory;
 use App\Models\Restaurant;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Morilog\Jalali\Jalalian;
 
 class RestaurantController extends Controller
 {
@@ -33,12 +35,15 @@ class RestaurantController extends Controller
             'longitude' => $restaurant->longitude,
             'work_time' => $restaurant->work_time,
             'discount' => $restaurant->discount ,
-            'khosh' =>$restaurant->minimum_price ,
+            'pay_type' => $restaurant->pay_type ,
+            'cod_courier' => $restaurant->cod_courier ,
+            'online_courier' => $restaurant->online_courier ,
+            'free_shipping' => $restaurant->free_shipping ,
+            'khosh' =>(int)$restaurant->minimum_price ,
             'bg' =>null,
             'rate' =>round($restaurant->rate),
             'min_cart' =>(int)$restaurant->minimum_price,
             'text' =>$restaurant->text,
-            'pay_type' =>$restaurant->Pay_type,
             'latitude' => $restaurant->latitude,
             'get_ready_minute' => $restaurant->grt_ready_minute,
             'discount_percentage' =>(int)$restaurant->discount_percentage,
@@ -49,13 +54,15 @@ class RestaurantController extends Controller
     {
         $search = $request->input('search');
 
-        $restaurant = Restaurant::with('foods.category', 'foods.options')->find($id);
+        $restaurant = Restaurant::with([
+            'foods.category',
+            'foods.options',
+            'foods.options.food'
+        ])->find($id);
 
         if (!$restaurant) {
             return api_response([], 'Restaurant not found', 404);
         }
-
-        // 🔹 فیلتر بر اساس نام غذا
         $foods = $restaurant->foods;
         if ($search) {
             $foods = $foods->filter(function ($food) use ($search) {
@@ -67,15 +74,19 @@ class RestaurantController extends Controller
             ->groupBy(function ($food) {
                 return $food->category->name ?? 'بدون دسته‌بندی';
             })
-            ->map(function ($foods, $categoryName) {
+            ->map(function ($foods, $categoryName) use ($restaurant) {
                 $category = $foods->first()->category;
                 $categoryId = $category->id ?? null;
                 $categoryImage = $category->icon ?? null;
+                $aboutCategory = Food::where('restaurant_id', $restaurant->id)
+                    ->whereNotNull('about_category')->where('food_categories_id', $categoryId)->value('about_category') ?? null;
                 return [
                     'category_id' => $categoryId,
+                    'note' => $aboutCategory,
                     'category' => $categoryName,
                     'image' => $categoryImage,
                     'items' => $foods
+                        ->sortByDesc(fn($food) => $food->availability_score)   // ←← سورت غذا بر اساس منطق جدید
                         ->sortByDesc('is_available')
                         ->map(function ($food) {
                         $price = $food->options->min('price') ?? null;
@@ -94,7 +105,9 @@ class RestaurantController extends Controller
                             'price' => $price,
                             'discountPrice' => $discountPrice,
                             'discountPercent' => $discountPercent,
-                            'subCategories' => $food->options->map(function ($option) use ($food) {
+                            'subCategories' => $food->options
+                                ->sortByDesc(fn($opt) => $opt->availability_score)
+                                ->map(function ($option) use ($food) {
                                 $discountPercent = null;
                                 if ($option->price && $option->price_discount) {
                                     $discountPercent = round((($option->price - $option->price_discount) / $option->price) * 100);
@@ -166,8 +179,10 @@ class RestaurantController extends Controller
                'is_disliked' => $user
                    ? $comment->likes->where('user_id', $user->id)->where('is_like', false)->isNotEmpty()
                    : false,
-               'date' => $comment->created_at?->format('d-m-Y'),
-               'items' => $comment->order->items->map(fn($item) => $item->food->name ?? null)->filter()->values(),
+               'date' => $comment->created_at
+                   ? Jalalian::fromDateTime($comment->created_at)->format('Y/m/d')
+                   : null,
+               'items' => $comment->order->items->map(fn($item) => $item->option?->food?->name . '  '.$item->option?->name)->filter()->values(),
                'replies' => $comment->replies->map(function ($reply) use ($user , $rest) {
                    return [
                        'id' => $reply->id,

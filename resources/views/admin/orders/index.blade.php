@@ -8,36 +8,108 @@
         <h1 class="text-2xl font-semibold mb-6 text-gray-800">لیست سفارش‌ها</h1>
 
         <!-- فرم فیلتر -->
-        <form class="mb-6 flex flex-wrap gap-3 items-end bg-white p-5 rounded-xl shadow-sm border" method="GET">
-            <div class="flex-1 min-w-64">
-                <input type="text" name="q" value="{{ request('q') }}" placeholder="جستجو (آیدی، کاربر، رستوران...)"
-                       class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
-            </div>
-            <div>
-                <select name="status" class="border border-gray-300 rounded-lg px-4 py-2">
-                    <option value="">همه وضعیت‌ها</option>
-                    <option value="pending" {{ request('status')=='pending' ? 'selected' : '' }}>در انتظار تایید</option>
-                    <option value="processing" {{ request('status')=='processing' ? 'selected' : '' }}>در حال آماده‌سازی</option>
-                    <option value="completed" {{ request('status')=='completed' ? 'selected' : '' }}>تحویل داده شده</option>
-                    <option value="cancelled" {{ request('status')=='cancelled' ? 'selected' : '' }}>لغو شده</option>
-                </select>
-            </div>
-            <div>
-                <select name="payment_status" class="border border-gray-300 rounded-lg px-4 py-2">
-                    <option value="">پرداخت</option>
-                    <option value="paid" {{ request('payment_status')=='paid' ? 'selected' : '' }}>آنلاین</option>
-                    <option value="cash" {{ request('payment_status')=='cash' ? 'selected' : '' }}>نقدی</option>
-                </select>
-            </div>
-            <div>
-                <input type="date" name="date" value="{{ request('date') }}" class="border border-gray-300 rounded-lg px-4 py-2">
-            </div>
-            <div class="flex gap-2">
-                <button type="submit" class="px-5 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition">فیلتر</button>
-                <a href="{{ route('admin.orders.index') }}" class="px-5 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition">بازنشانی</a>
+        <form id="filterForm" class="mb-8 bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 items-end">
+
+                <!-- جستجو - با debounce خودکار -->
+                <div class="lg:col-span-3">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">جستجو</label>
+                    <input type="text" name="q" value="{{ request('q') }}"
+                           placeholder="آیدی، نام کاربر، رستوران..."
+                           class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition"
+                           id="searchInput">
+                </div>
+
+                <div class="lg:col-span-3">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">تاریخ</label>
+                    <input type="date" name="date" value="{{ request('date') }}"
+                           class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-500 date-filter">
+                </div>
+                <!-- روش پرداخت + تاریخ در یک ردیف -->
+                <div class="lg:col-span-9">
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">روش پرداخت</label>
+                    <div class="flex items-center gap-6">
+                        <label class="flex items-center cursor-pointer">
+                            <input type="radio" name="payment_status" value="" {{ !request('payment_status') ? 'checked' : '' }}
+                            class="w-5 h-5 text-orange-600 radio-filter">
+                            <span class="mr-2 text-sm font-medium text-gray-700">همه</span>
+                        </label>
+                        <label class="flex items-center cursor-pointer">
+                            <input type="radio" name="payment_status" value="paid" {{ request('payment_status')=='paid' ? 'checked' : '' }}
+                            class="w-5 h-5 text-orange-600 radio-filter">
+                            <span class="mr-2 text-sm font-medium text-gray-700">آنلاین</span>
+                        </label>
+                        <label class="flex items-center cursor-pointer">
+                            <input type="radio" name="payment_status" value="cash" {{ request('payment_status')=='cash' ? 'checked' : '' }}
+                            class="w-5 h-5 text-orange-600 radio-filter">
+                            <span class="mr-2 text-sm font-medium text-gray-700">نقدی</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="lg:col-span-9">
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">وضعیت سفارش</label>
+                    <div class="flex flex-wrap items-center gap-4">
+                        @php
+                            $statuses = [
+                                ''          => 'همه',
+                                'pending'   => 'در انتظار تایید',
+                                'ok' => 'تایید شده',
+                                'cancelled' => 'کنسل شده',
+                                'processing'=> 'در حال آماده‌سازی',
+                                'completed'     => 'در انتظار پیک',
+                                'delivery'  => 'تحویل داده شده',
+                            ];
+                        @endphp
+
+                        @foreach($statuses as $value => $label)
+                            <label class="flex items-center cursor-pointer group">
+                                <input type="radio" name="status" value="{{ $value }}"
+                                       {{ request('status') == $value ? 'checked' : '' }}
+                                       class="w-5 h-5 text-orange-600 focus:ring-orange-500 border-gray-300 radio-filter">
+                                <span class="mr-2 text-sm font-medium text-gray-700 group-hover:text-orange-600 transition">
+                            {{ $label }}
+                        </span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+
+
+                <!-- دکمه بازنشانی (کوچک و شیک) -->
+                <div class="lg:col-span-3 flex justify-end items-end">
+                    @if(request()->hasAny(['q', 'status', 'payment_status', 'date']))
+                        <a href="{{ route('admin.orders.index') }}"
+                           class="inline-flex items-center gap-2 px-5 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition text-sm font-medium">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                            پاک کردن فیلتر
+                        </a>
+                    @endif
+                </div>
             </div>
         </form>
 
+        @push('scripts')
+            <script>
+                // جستجو با تاخیر (debounce) - خیلی نرم و حرفه‌ای
+                let searchTimeout;
+                document.getElementById('searchInput').addEventListener('input', function () {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        document.getElementById('filterForm').submit();
+                    }, 600); // 600ms تاخیر
+                });
+
+                // هر تغییری در رادیوها یا تاریخ → فوری اعمال
+                document.querySelectorAll('.radio-filter, .date-filter').forEach(el => {
+                    el.addEventListener('change', function () {
+                        document.getElementById('filterForm').submit();
+                    });
+                });
+            </script>
+        @endpush
         <!-- جدول سفارش‌ها -->
         <div class="bg-white shadow-xl rounded-2xl border overflow-hidden">
             @if($orders->count() > 0)
@@ -98,12 +170,9 @@
                                             تغییر وضعیت
                                         </button>
                                         <ul class="absolute hidden bg-white shadow-lg rounded-lg w-40 mt-1 text-sm z-50">
-                                            <li class="px-4 py-2 hover:bg-orange-100 cursor-pointer" onclick="changeOrderStatus({{ $order->id }}, 'pending')">در انتظار تایید</li>
                                             <li class="px-4 py-2 hover:bg-blue-100 cursor-pointer" onclick="changeOrderStatus({{ $order->id }}, 'processing')">در حال آماده‌سازی</li>
                                             <li class="px-4 py-2 hover:bg-emerald-100 cursor-pointer" onclick="changeOrderStatus({{ $order->id }}, 'completed')">در انتظار پیک</li>
-                                            <li class="px-4 py-2 hover:bg-red-100 cursor-pointer" onclick="changeOrderStatus({{ $order->id }}, 'cancelled')">لغو شده</li>
                                             <li class="px-4 py-2 hover:bg-red-100 cursor-pointer" onclick="changeOrderStatus({{ $order->id }}, 'delivery')">تحویل پیک</li>
-                                            <li class="px-4 py-2 hover:bg-red-100 cursor-pointer" onclick="changeOrderStatus({{ $order->id }}, 'rejected')">رد شده</li>
                                         </ul>
                                     </div>
 

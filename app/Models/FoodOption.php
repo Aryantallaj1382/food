@@ -15,8 +15,22 @@ class FoodOption extends Model
 
     public function food()
     {
-        return $this->belongsTo(Food::class);
+        return $this->belongsTo(Food::class, 'food_id');
     }
+
+    public function getAvailabilityScoreAttribute()
+    {
+        if ($this->is_available == 0) return 0;
+
+        if (!$this->relationLoaded('food')) {
+            $this->load('food:id,is_available');
+        }
+
+        if (!$this->food || $this->food->is_available == 0) return 0;
+
+        return 1;
+    }
+
     public function getDiscountAttribute()
     {
         if ($this->price_discount == null) {
@@ -25,6 +39,8 @@ class FoodOption extends Model
         return $this->price_discount;
 
     }
+
+
     public function getPriceOrderAttribute()
     {
         if ($this->price_discount == null) {

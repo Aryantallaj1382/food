@@ -120,7 +120,7 @@
 
                         {{-- عملیات --}}
                         <td class="py-3 px-4 text-center">
-                            <a href="{{ route('admin.restaurants.show', $restaurant->id) }}"
+                            <a href="{{ route('admin.restaurants.edit', $restaurant->id) }}"
                                class="text-blue-600 hover:text-blue-800 font-bold">
                                 مشاهده
                             </a>

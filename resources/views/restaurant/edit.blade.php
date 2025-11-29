@@ -13,6 +13,33 @@
                 </ul>
             </div>
         @endif
+        <div class="px-6 py-4 bg-gray-50 border-t flex flex-wrap justify-end gap-3">
+
+            <a href="{{ route('admin.foods.restaurant', $restaurant->id) }}"
+               class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition shadow-sm">
+                🍽️ غذاها
+            </a>
+
+            <a href="{{ route('admin.restaurants.order', $restaurant->id) }}"
+               class="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-xl hover:bg-amber-700 transition shadow-sm">
+                🛒 سفارش‌ها
+            </a>
+
+            <a href="{{ route('admin.restaurants.show', $restaurant->id) }}"
+               class="flex items-center gap-2 px-4 py-2 bg-yellow-400 text-white rounded-xl hover:bg-yellow-500 transition shadow-sm">
+                ✏️ نمایش اطلاعات
+            </a>
+
+            <form action="{{ route('admin.restaurants.destroy', $restaurant->id) }}" method="POST" onsubmit="return confirm('آیا مطمئن هستید؟');">
+                @csrf
+                @method('DELETE')
+                <button type="submit"
+                        class="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 transition shadow-sm">
+                    🗑️ حذف
+                </button>
+            </form>
+
+        </div>
 
         <form action="{{ route('admin.restaurants.update', $restaurant->id) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
             @csrf
@@ -128,10 +155,11 @@
                 <label for="sending_way" class="block text-gray-700 font-medium mb-2">نحوه ارسال</label>
                 <select name="sending_way" id="sending_way" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none">
                     <option value="">انتخاب کنید</option>
-                    <option value="پیک" {{ $restaurant->sending_way=='پیک' ? 'selected' : '' }}>پیک</option>
-                    <option value="درب محل" {{ $restaurant->sending_way=='درب محل' ? 'selected' : '' }}>تحویل در محل</option>
+                    <option value="both" {{ $restaurant->sending_way=='پیک' ? 'selected' : '' }}>تحویل حضوری و پیک</option>
+                    <option value="in_person" {{ $restaurant->sending_way=='درب محل' ? 'selected' : '' }}>تحویل حضوری</option>
                 </select>
             </div>
+
 
             <!-- چک باکس ها -->
             <div class="flex items-center mb-4">

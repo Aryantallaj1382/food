@@ -49,11 +49,12 @@ class nearestRestaurantsController extends Controller
                 'address' => $restaurant->address,
                 'latitude' => $restaurant->latitude,
                 'longitude' => $restaurant->longitude,
-                'rate' => 3,
-                'all_rate' => 50,
+                'rate' => $restaurant->rate,
+                'all_rate' =>  $restaurant->rate_count,
                 'image' => $restaurant->image,
                 'distance' => $distanceValue,
                 'distance_unit' => $distanceUnit,
+
             ];
         });
 

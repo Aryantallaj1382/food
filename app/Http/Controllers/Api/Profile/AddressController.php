@@ -58,7 +58,6 @@ class AddressController extends Controller
             'address' => $request->address,
             'latitude' => $request->lat,
             'longitude' => $request->lng,
-            'is_main' => false,
 
         ]);
         return api_response([], 'با موفقیت ویرایش شد');

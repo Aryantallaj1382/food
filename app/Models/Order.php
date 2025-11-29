@@ -53,11 +53,23 @@ class Order extends Model
     public function getStatusFaAttribute()
     {
         $map = [
-            'pending' => 'در انتظار بررسی',
-            'processing' => 'در حال پردازش',
+            'pending' => 'در انتظار تایید',
+            'processing' => 'تایید شده',
             'completed' => 'تکمیل‌شده',
-            'cancelled' => 'لغو‌شده',
+            'cancelled' => 'کنسل شده',
             'delivery' => 'تحویل به پیک',
+            'rejected' => 'رد شده',
+        ];
+        return Arr::get($map, $this->status, 'نامشخص');
+    }
+    public function getStatusUserFaAttribute()
+    {
+        $map = [
+            'pending' => 'در انتظار تایید',
+            'processing' => 'تایید شده',
+            'completed' => 'تایید شده',
+            'cancelled' => 'کنسل شده',
+            'delivery' => 'تایید شده',
             'rejected' => 'رد شده',
         ];
         return Arr::get($map, $this->status, 'نامشخص');

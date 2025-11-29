@@ -9,16 +9,19 @@ class UserOrderController
 {
     public  function  index()
     {
-        $orders = Order::where('user_id',auth()->user()->id)->where('payment_status','paid')->orWhere('payment_status','cash')->paginate(10);
+        $orders = Order::where('user_id',auth()->user()->id)->where('payment_status','paid')->orWhere('payment_status','cash')->latest()->paginate(10);
         $orders->getCollection()->transform(function($order){
            return [
                 'id' => $order->id,
                 'restaurant_name' => $order->restaurant->name,
                 'image' => $order->restaurant->image,
-               'date' => Jalalian::fromCarbon($order->created_at)->format('Y/m/d , H:i'),
+                 'date' => Jalalian::fromCarbon(
+                   $order->created_at->copy()->timezone('Asia/Tehran')
+                 )->format('Y/m/d , H:i'),
                 'payment_method' => $order->payment_method,
+                'payment_status_en' => $order->payment_status,
                 'sending_method' => $order->sending_method,
-                'payment_status' => $order->pay_status_fa,
+                'payment_status' => $order->status_user_fa,
                 'address' => $order->adress->address,
                 'total_amount' =>(int) $order->total_amount,
            ];
@@ -46,13 +49,14 @@ class UserOrderController
             'address' => $order->adress->address,
             'payment_method' => $order->payment_method,
             'sending_method' => $order->sending_method,
-            'payment_status' => $order->pay_status_fa,
+            'payment_status_en' => $order->payment_status,
+            'payment_status' => $order->status_user_fa,
             'notes' => $order->notes,
             'items' => $order->items->map(function($item){
                 return [
 
                     'id' => $item->id,
-                    'name' => $item->option?->food?->name,
+                    'name' => $item->option?->food?->name . '  '. $item->option?->name,
                     'price' => (int)$item->price,
                     'quantity' => (int)$item->quantity,
                     'dish_quantity' =>(int)$item->dish_quantity,

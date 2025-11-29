@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminCategoryController;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminDiscountRestaurantController;
 use App\Http\Controllers\Admin\AdminNotificationController;
 use App\Http\Controllers\Admin\AdminReportRestaurantController;
 use App\Http\Controllers\Admin\AdminRestaurantIntroductionController;
@@ -88,7 +89,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('/{slider}', 'update')->name('update');
         Route::delete('/{slider}', 'destroy')->name('destroy');
     });
-    Route::resource('categories', ADminCategoryController::class)->only(['index', 'create', 'store', 'destroy']);
+
+    Route::resource('categories', ADminCategoryController::class)->only(['index', 'create', 'store', 'destroy','edit','update']);
+    Route::delete('delete/category/{id}', [ADminCategoryController::class, 'delete'])->name('category.delete');
     Route::get('transaction', [AdminTransactionController::class, 'index'])->name('restaurants.balance');
     Route::get('transaction/{id}', [AdminTransactionController::class, 'show'])->name('restaurants.transaction.show');
     Route::get('/{id}/credit', [AdminTransactionController::class, 'createCredit'])->name('credit.create');
@@ -130,4 +133,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::delete('/notifications/clear', [AdminNotificationController::class, 'clear'])
         ->name('notifications.clear');
 
+    Route::resource('feedback', \App\Http\Controllers\Admin\AdminFeedbackController::class)->only([
+        'index', 'update'
+    ]);
+
+    // routes/web.php
+        Route::get('request-discounts', [AdminDiscountRestaurantController::class, 'index'])->name('request-discounts.index');
+    Route::get('restaurant-discounts', [AdminDiscountRestaurantController::class, 'show'])->name('restaurant-discounts.index');
+    Route::get('cat', [ADminCategoryController::class, 'x'])->name('categories.show');
 });

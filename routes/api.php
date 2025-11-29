@@ -29,6 +29,7 @@ Route::prefix('auth')->group(function () {
 Route::get('/search', [\App\Http\Controllers\Api\Food\SearchController::class,'search']);
 Route::get('/main', [\App\Http\Controllers\Api\MainController::class,'index']);
 Route::get('/category', [\App\Http\Controllers\Api\MainController::class,'category']);
+Route::post('/complete-order', [\App\Http\Controllers\Api\Profile\ProfileController::class,'completed_order'])->middleware('auth:sanctum');
 Route::get('/near_restaurant', [\App\Http\Controllers\Api\Profile\nearestRestaurantsController::class,'nearestRestaurants']);
 
 Route::prefix('profile')->middleware('auth:sanctum')->controller(\App\Http\Controllers\Api\Profile\ProfileController::class)->group(function () {
@@ -47,6 +48,8 @@ Route::prefix('profile/address')->middleware('auth:sanctum')->controller(\App\Ht
     Route::delete('/{id}', 'delete');
 
 });
+Route::post('/wallet/charge', [\App\Http\Controllers\Api\Profile\WalletController::class, 'store'])->middleware('auth:sanctum');
+Route::post('/wallet/callback', [\App\Http\Controllers\Api\Profile\WalletController::class, 'callback']);
 
 Route::prefix('feedback')->middleware('auth:sanctum')->controller(\App\Http\Controllers\Api\Profile\FeedBackController::class)->group(function () {
     Route::post('/', 'store');
@@ -103,6 +106,7 @@ Route::prefix('restaurant')->middleware('auth:sanctum')->group(function () {
         Route::get('/', 'index');
         Route::post('/store', 'store');
     });
+    Route::get('/hasPendingOrder', [\App\Http\Controllers\Api\Restaurant\RestPanelController::class,'hasPendingOrder']);
 
     Route::prefix('/panel')->controller(\App\Http\Controllers\Api\Restaurant\RestPanelController::class)->group(function () {
         Route::post('/pass', 'changePassword');

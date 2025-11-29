@@ -36,9 +36,24 @@ class Food extends Model
         return $value ? url('public/'.$value) : null;
 
     }
+    public function getAvailabilityScoreAttribute()
+    {
+        if ($this->is_available == 0) return 0;
+
+        if (!$this->relationLoaded('options')) {
+            $this->load('options:id,food_id,is_available');
+        }
+
+        // حداقل یک آپشن در دسترس
+        $hasAvailableOption = $this->options->contains(fn($op) => $op->is_available == 1);
+
+        return $hasAvailableOption ? 1 : 0;
+    }
+
+
     public function category()
     {
-        return $this->belongsTo(Category::class , 'food_categories_id');
+        return $this->belongsTo(FoodCategory::class , 'food_categories_id');
     }
     public function restaurant1()
     {

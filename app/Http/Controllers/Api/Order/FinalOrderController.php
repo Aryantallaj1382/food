@@ -33,7 +33,7 @@ class FinalOrderController extends Controller
             'notes' => 'nullable|string',
             'time' => 'nullable',
             'is_wallet' => 'required',
-            'payment_method' => 'required|string',
+            'payment_method' => 'nullable|string',
             'sending_method' => 'required|string',
             'restaurantId' => 'required|exists:restaurants,id',
             'address_id' => 'required|exists:addresses,id',
@@ -42,6 +42,9 @@ class FinalOrderController extends Controller
             'items.*.quantity' => 'required|integer|min:1',
         ]);
         $rest = Restaurant::find($request->restaurantId);
+        if ( $rest->is_open == false ) {
+            return api_response([],'این رستوران بسته است',422);
+        }
         $user = auth()->user();
         $address= Address::find($request->address_id);
         $order = Order::create([
@@ -89,9 +92,12 @@ class FinalOrderController extends Controller
         $discount = 0;
         if ($request->sending_method == 'pike')
         {
-            $distance = distanceKm($rest->latitude, $rest->longitude, $address->latitude, $address->longitude);
-            $send_price = $rest->send_price * $distance;
-            $total += $send_price;
+            if ($rest->free_shipping == 0){
+                $distance = distanceKm($rest->latitude, $rest->longitude, $address->latitude, $address->longitude);
+                $send_price = $rest->send_price * $distance;
+                $total += $send_price;
+            }
+
         }
 
         if ($request->restaurant_discount === true)
@@ -159,6 +165,7 @@ class FinalOrderController extends Controller
                     'payment_method' => 'wallet',
                     'gateway' => $request->gateway,
                 ]);
+                return api_response([],'سفارش با موفقیت ثبت شد.');
             }
             else{
                 $new_balance = $total - $balance;
@@ -214,8 +221,11 @@ class FinalOrderController extends Controller
     {
         $address= Address::find($request->address_id);
         $rest= Restaurant::find($request->restaurant_id);
-        if (!$rest->latitude || !$rest->longitude ||  $address->latitude || $address->longitude){
-            return api_response([],'طول و عرض جغرافیایی یافت نشد');
+        if ($rest?->free_shipping == 1){
+            return api_response(0);
+        }
+        if (!$rest->latitude || !$rest->longitude ||  !$address->latitude || !$address->longitude){
+            return api_response(0,'طول و عرض جغرافیایی یافت نشد');
         }
         $distance = distanceKm($rest->latitude, $rest->longitude, $address->latitude, $address->longitude);
         $send_price = $rest->send_price * $distance;

@@ -121,8 +121,8 @@
                 <select name="sending_way" id="sending_way"
                         class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none">
                     <option value="">انتخاب کنید</option>
-                    <option value="پیک">پیک</option>
-                    <option value="درب محل">تحویل در محل</option>
+                    <option value="in_person">حضوری</option>
+                    <option value="both">هر دو</option>
                 </select>
             </div>
             <div class="flex items-center mb-4">

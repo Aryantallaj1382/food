@@ -50,10 +50,10 @@
                     </div>
 
                     <div>
-                        <label class="block text-gray-700 font-medium mb-2">دسته‌بندی</label>
+                        <label class="block text-gray-700 font-medium mb-2">گروه ها</label>
                         <select name="food_categories_id" class="w-full p-3 border rounded-lg">
                             <option value="">بدون دسته</option>
-                            @foreach(\App\Models\Category::all() as $cat)
+                            @foreach(\App\Models\FoodCategory::all() as $cat)
                                 <option value="{{ $cat->id }}" {{ old('food_categories_id', $food->food_categories_id) == $cat->id ? 'selected' : '' }}>
                                     {{ $cat->name }}
                                 </option>
@@ -149,8 +149,11 @@
                            class="w-4 h-4 text-green-600 rounded" checked>
                     <label class="text-sm text-gray-700">موجود</label>
                 </div>
-                <input type="number" name="options[${optionIndex}][dish_price]" placeholder="قیمت ظرف"
-                       class="p-2 border rounded-md text-sm" min="0" step="100">
+             <input type="number" name="options[${optionIndex}][dish]" placeholder="تعداد سفارش برای هر ظرف"
+                                       class="p-2 border rounded-md text-sm">
+                                <input type="number" name="options[${optionIndex}][dish_price]" placeholder="قیمت ظرف"
+                                       class="p-2 border rounded-md text-sm">
+
             </div>
             <button type="button" class="remove-option text-red-600 hover:text-red-800 text-sm mt-2">حذف</button>
         `;

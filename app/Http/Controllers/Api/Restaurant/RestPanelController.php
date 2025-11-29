@@ -12,6 +12,14 @@ use Illuminate\Support\Facades\Hash;
 
 class RestPanelController extends Controller
 {
+    public function hasPendingOrder()
+    {
+        $user = auth()->user();
+        $rest = Restaurant::where('user_id', $user->id)->first();
+        $pending = Order::where('restaurant_id', $rest->id)->where('status', 'pending')->count();
+       $is_pending = $pending > 0 ? true : false;
+        return api_response(['havePending'=>$is_pending]);
+    }
     public function panel()
     {
         $user = auth()->user();

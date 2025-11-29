@@ -15,70 +15,51 @@ class SearchController extends Controller
         $slug = $request->input('category');
         $khosh = $request->input('khosh');
         $taem = $request->input('taem');
-        $rate = $request->input('rate');
 
+        // -------------------- RESTAURANTS --------------------
         $restaurants = Restaurant::query()
-            ->select('restaurants.*') // همیشه انتخاب کن
+            ->orderByDesc('is_open')
+            ->orderBy('discount_percentage')
+            ->select('restaurants.*')
             ->when($search, function ($query, $search) {
-
-                $query->selectRaw(
-                    'MATCH(restaurants.name) AGAINST(? IN NATURAL LANGUAGE MODE) AS relevance',
-                    [$search]
-                )
-                    ->where(function ($q) use ($search) {
-                        $q->whereRaw(
-                            'MATCH(restaurants.name) AGAINST(? IN NATURAL LANGUAGE MODE)',
-                            [$search]
-                        )
-                            ->orWhere('restaurants.name', 'LIKE', "%{$search}%"); // 🔥 Partial search
-                    })
-                    ->orderByDesc('relevance');
+                $query->where('restaurants.name', 'LIKE', "%{$search}%");
             })
-
             ->when($slug, function ($query, $slug) {
                 $query->whereHas('categories', function ($q) use ($slug) {
-                    $q->whereIn('categories.id', $slug); // 🔹 مشخص کردن جدول
+                    $q->whereIn('categories.id', $slug);
                 });
             })
 
             ->when($taem, function ($query) {
                 $query->whereNotNull('discount');
             })
+
             ->take(10)
             ->get();
 
-        $foods = Food::with('restaurant.categories')
-            ->select('foods.*') // همیشه انتخاب کن
-            ->when($search, function ($query, $search) {
+        // -------------------- FOODS --------------------
+        if (!empty($slug) || !empty($taem)) {
+            $foods = collect([]);
+        } elseif (empty($search) && empty($khosh)) {
+            $foods = collect([]);
+        } else {
+            $foods = Food::with('restaurant.categories')
+                ->select('foods.*')
+                ->when($search, function ($query, $search) {
+                    $query->where('foods.name', 'LIKE', "%{$search}%");
+                })
 
-                $query->selectRaw(
-                    "MATCH(foods.name, foods.description) AGAINST(? IN NATURAL LANGUAGE MODE) AS relevance",
-                    [$search]
-                )
-                    ->where(function ($q) use ($search) {
-                        $q->whereRaw(
-                            "MATCH(foods.name, foods.description) AGAINST(? IN NATURAL LANGUAGE MODE)",
-                            [$search]
-                        )
-                            ->orWhere('foods.name', 'LIKE', "%{$search}%"); // 🔥 Partial search
-                    })
-                    ->orderByDesc('relevance');
-            })
+                ->when($khosh, function ($query) {
+                    $query->whereHas('options', function ($q) {
+                        $q->whereColumn('price_discount', '<=', 'price');
+                    });
+                })
 
-            ->when($slug, function ($query, $slug) {
-                $query->whereHas('restaurant.categories', function ($q) use ($slug) {
-                    $q->whereIn('categories.id', $slug); // 🔹 مشخص کردن جدول
-                });
-            })
+                ->take(10)
+                ->get();
+        }
 
-            ->when($khosh, function ($query, $khosh) {
-                $query->whereHas('options', function ($q) {
-                    $q->whereColumn('price_discount', '<=', 'price');
-                });
-            })
-            ->take(10)
-            ->get();
-
+        // -------------------- MAP --------------------
         $f = $foods->map(function ($item) {
             return [
                 'name' => $item->name,
@@ -94,12 +75,12 @@ class SearchController extends Controller
                 'image' => $item->image,
                 'discount_percentage' => $item->discount_percentage ?? 0,
                 'options' => $item->options,
-                ];
+            ];
         });
 
         return api_response([
             'restaurants' => $restaurants,
-            'foods'=> $f
+            'foods' => $f,
         ]);
     }
 }

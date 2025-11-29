@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Restaurant;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\Restaurant;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,12 +14,12 @@ class RestReportController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-
+        $restaurant = Restaurant::where('user_id', $user->id)->first();
         $from = $request->input('from');
         $to = $request->input('to');
         $send = $request->input('send');
 
-        $orders = Order::whereRelation('restaurant', 'user_id', $user->id)->where('payment_status' , 'paid')->orWhere('payment_status' , 'cash');
+        $orders = Order::whereRelation('restaurant', 'user_id', $user->id)->where('payment_status' , 'paid')->orWhere('payment_status' , 'cash')->where('restaurant_id', $restaurant->id);
 
         if ($from) {
             $orders->whereDate('created_at', '>=', $from);

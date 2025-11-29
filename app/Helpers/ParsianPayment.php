@@ -73,27 +73,11 @@ class ParsianPayment
 
             $res = $result->SalePaymentRequestResult;
             if ($res->Status == 0 && !empty($res->Token)) {
-                // لاگ موفقیت + ذخیره توکن
-                \Log::info('Parsian Sale: Token generated', [
-                    'order_id' => $orderId,
-                    'token'    => $res->Token
-                ]);
 
                 Order::where('id', $orderId)->update(['authority' => $res->Token]);
 
-                \Log::info('Redirecting to Parsian gateway', [
-                    'url' => "https://pec.shaparak.ir/NewIPG/?Token=" . $res->Token
-                ]);
-
                 return "https://pec.shaparak.ir/NewIPG/?Token=" . $res->Token;
             } else {
-                // لاگ خطا
-                \Log::warning('Parsian Sale failed', [
-                    'order_id' => $orderId,
-                    'status'   => $res->Status,
-                    'message'  => $res->Message ?? 'خطای ناشناخته'
-                ]);
-
                 $this->showError($res->Status, $res->Message ?? 'خطای ناشناخته');
             }
 

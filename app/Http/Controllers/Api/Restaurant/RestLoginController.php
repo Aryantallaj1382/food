@@ -20,18 +20,17 @@ class RestLoginController
 
         $user = User::where('mobile',$request->mobile)->first();
         if (!$user) {
-            return  api_response([],'کاربری یافت نشد');
+            return  api_response([],'کاربری یافت نشد', 422);
         }
         $rest  = Restaurant::where('user_id', $user->id)->first();
         if (!$rest)
         {
-            return api_response([],'شما اجازه ی دسترسی ندارید');
+            return api_response([],'شما اجازه ی دسترسی ندارید', 422);
         }
         if (!empty($request->password)) {
             if (!Hash::check($request->password, $user->password)) {
-                throw ValidationException::withMessages([
-                    'mobile' => ['شماره موبایل یا رمز عبور اشتباه است.'],
-                ]);
+                return api_response([],'شماره موبایل یا رمز عبور اشتباه است.', 422);
+
             }
         }
 

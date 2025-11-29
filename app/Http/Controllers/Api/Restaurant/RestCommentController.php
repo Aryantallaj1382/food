@@ -19,14 +19,14 @@ class RestCommentController extends Controller
                 $query->whereHas('restaurant', function ($query) use ($user) {
                     $query->where('user_id', $user->id);
                 });
-        })->paginate();
+        })->latest()->paginate();
 
         $comments->getCollection()->transform(function ($item, $key) use ($user) {
             $order = $item->order->items->map(function($orderItem) {
                 $foodName = $orderItem->option?->food?->name ?? '';
                 $optionName = $orderItem->option?->name;
 
-                return $optionName ? "$foodName ($optionName)" : $foodName;
+                return $optionName ? "$foodName $optionName" : $foodName;
             })->toArray();
 
             return [
@@ -61,12 +61,14 @@ class RestCommentController extends Controller
     }
     public function reply(Request $request, $id)
     {
+        if (empty($request->text)){
+            return api_response([],'متن پاسخ نباید خالی باشد',422);
+        }
         $parentComment = Comment::findOrFail($id);
 
         $text = $request->input('text', '');
 
-        $existingReply = Comment::where('user_id', auth()->id())
-            ->where('parent_comment_id', $parentComment->id)
+        $existingReply = Comment::where('parent_comment_id', $parentComment->id)
             ->first();
 
         if ($existingReply) {

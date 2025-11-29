@@ -90,7 +90,7 @@ class Restaurant extends Model
     {
         return $value ? url('public/'.$value) : null;
     }
-    protected $appends = ['category_names', 'rate' , 'rate_count' ,'pay_type'];
+    protected $appends = ['category_names', 'rate' , 'rate_count'];
     protected function categoryNames(): Attribute
     {
         return Attribute::get(function () {
@@ -109,14 +109,6 @@ class Restaurant extends Model
             $query->where('restaurant_id', $this->id);
         })->count();
     }
-    protected function getPayTypeAttribute()
-    {
-        return match ($this->attributes['pay_type']) {
-            'cash'   => ['پرداخت در محل'],
-            'online' => ['پرداخت آنلاین'],
-            'both'   => ['پرداخت در محل', 'پرداخت آنلاین'],
-            default  => [],
-        };
-    }
+
 
 }

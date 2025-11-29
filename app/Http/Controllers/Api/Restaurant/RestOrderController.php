@@ -77,7 +77,7 @@ class RestOrderController extends Controller
                 'total_amount' => (int)$order->total_amount,
                 'sending_method' => $order->sending_method,
                 'status' => $order->status,
-                
+
                 'time' => $order->time,
                 'get_ready_time' => $order->created_at && Carbon::parse($order->created_at)->isToday()
                     ? ($order->get_ready_time ?? $order->time)
@@ -89,9 +89,11 @@ class RestOrderController extends Controller
     public function show_order($id){
 
         $order=Order::find($id);
+        $user = auth()->user();
 
         $items = OrderItem::where('order_id', $order->id)->get();
         $price_item = OrderItem::where('order_id', $order->id)->sum('price');
+        $rest = Restaurant::where('user_id', $user->id)->first();
 
         $isFirstFromRestaurant = !Order::where('user_id', $order->user_id)
             ->where('restaurant_id', $order->restaurant_id)
@@ -106,12 +108,34 @@ class RestOrderController extends Controller
         $firstOrder = Order::where('user_id', $order->user_id)
             ->orderBy('created_at', 'asc')
             ->first();
+        $showAddress = false;
+        if ($order->sending_method == 'pike')
+        {
+            if ($order->payment_method == 'online')
+            {
+                if ($rest->online_courier == 'restaurant_courier')
+                {
+                    $showAddress = true;
+                }
+
+            }
+            elseif ($order->payment_method == 'cash')
+            {
+                if ($rest->cod_courier == 'restaurant_courier')
+                {
+                    $showAddress = true;
+                }
+            }
+
+
+        }
 
 
 
         $data = [
             'id' => $id,
             'full_name'=>$order->user->name,
+            'showAddress'=>$showAddress,
             'created' => $order->created_at ? Jalalian::fromCarbon($order->created_at)->format('Y/m/d H:i') : null,
             'mobile'=>$order->mobile,
             'address'=>$order->adress?->address,

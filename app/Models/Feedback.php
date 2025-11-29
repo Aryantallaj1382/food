@@ -4,11 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class feedback extends Model
+class Feedback extends Model
 {
     protected  $guarded = [];
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+    public function isAnswered()
+    {
+        return !empty($this->answer);
     }
 }

@@ -7,6 +7,7 @@ use App\Models\Food;
 use App\Models\FoodCategory;
 use App\Models\FoodOption;
 use App\Models\Payment;
+use App\Models\Restaurant;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -17,62 +18,67 @@ class ProductsMenuController extends controller
 {
     public function categories()
     {
-        $categories = FoodCategory::with('food:id,food_categories_id,is_available')->select(['id','name'])->get();
-
+        $user = auth()->user();
+// فرض بر این است که مدل Restaurant وجود دارد و رستوران کاربر را پیدا می‌کنیم
+        $restaurant = Restaurant::where('user_id', $user->id)->first();
+        if (!$restaurant) {
+            return api_response([]); // یا خطای مناسب
+        }
+        $foods = Food::where('restaurant_id', $restaurant->id)->pluck('food_categories_id')->unique()->toArray();
+        $categories = FoodCategory::with(['food' => function($query) use ($restaurant) {
+            $query->where('restaurant_id', $restaurant->id);
+        }])->whereIn('id', $foods)->select(['id', 'name'])->get();
         $categories = $categories->map(function($category) {
-            // بررسی وضعیت غذاها
+// بررسی وضعیت غذاها
             $is_available = $category->food->contains(function($food) {
                 return $food->is_available == 1;
             }) ? 1 : 0;
-
             return [
                 'id' => $category->id,
                 'name' => $category->name,
                 'is_available' => $is_available
             ];
         });
-
         return api_response($categories);
     }
 
+        public function index(Request $request)
+        {
+            $user = auth()->user();
 
-    public function index(Request $request)
-    {
-        $user = auth()->user();
+            $foodName = $request->input('search');
+            $category = $request->input('category_id');
+            $query = Food::whereRelation('restaurant', 'user_id', $user->id)->orderBy('is_available')->orderBy('food_categories_id');
 
-        $foodName = $request->input('search');
-        $category = $request->input('category_id');
-        $query = Food::whereRelation('restaurant', 'user_id', $user->id);
+            if (!empty($foodName)) {
+                $query->where('name','like', '%'.$foodName.'%');
+            }
+            if (!empty($category)) {
+                $query->where('food_categories_id',$category);
+            }
 
-        if (!empty($foodName)) {
-            $query->where('name','like', '%'.$foodName.'%');
+            $foods = $query->orderBy('created_at', 'desc')->get();
+            $foods  = $foods->map(function ($food) {
+                return  [
+                    'id' => $food->id,
+                    'name' => $food->name,
+                    'category' => ['name'=> $food->category?->name],
+                    'is_available' => $food->is_available,
+                    'description' => $food->description,
+                    'options' => $food->options->map(function ($option) {
+                        return [
+                            'id' => $option->id,
+                            'name' => $option->name,
+                            'price' => $option->price,
+                            'price_discount' => $option->price_order,
+                            'is_available' => $option->is_available,
+                        ];
+                    }),
+                ];
+            });
+
+            return api_response($foods, 'فیلتر و جستجو با موفقیت انجام شد');
         }
-        if (!empty($category)) {
-            $query->where('food_categories_id',$category);
-        }
-
-        $foods = $query->orderBy('created_at', 'desc')->get();
-        $foods->map(function ($food) {
-            return  [
-                'id' => $food->id,
-                'name' => $food->name,
-                'category' => $food->category?->name,
-                'is_available' => $food->is_available,
-                'description' => $food->description,
-                'options' => $food->options->map(function ($option) {
-                    return [
-                        'id' => $option->id,
-                        'name' => $option->name,
-                        'price' => $option->price,
-                        'price_discount' => $option->discount,
-                        'is_available' => $option->is_available,
-                    ];
-                }),
-            ];
-        });
-
-        return api_response($foods, 'فیلتر و جستجو با موفقیت انجام شد');
-    }
 
     public function show($id)
     {
@@ -112,55 +118,140 @@ class ProductsMenuController extends controller
 
         return api_response($data, 'جزئیات غذا با موفقیت دریافت شد');
     }
-
     public function change_status(Request $request)
     {
-      $type =  $request->input('type');
-        $id =  $request->input('id');
-      if ($type == "food") {
-          $food = Food::find($id);
-          if ($food->is_available == false) {
-              $food->is_available = true;
-              $food->save();
-              $food->options()->update(['is_available' => true]);
-          }
-          else{
-              $food->is_available = false;
-              $food->save();
-              $food->options()->update(['is_available' => false]);
-          }
+        $type = $request->input('type');
+        $id   = $request->input('id');
 
-      }
-      elseif ($type == "option") {
-          $option = FoodOption::find($id);
-          if ($option->is_available == false) {
-              $option->is_available = true;
-              $option->save();
-          }
-          else{
-              $option->is_available = false;
-              $option->save();
-          }
-      }
-        if ($type == "category") {
-            $category = Category::find($id);
-            $user = auth()->user();
+        if ($type == "food") {
+            $food = Food::findOrFail($id);
 
-            $foods = Food::where('user_id', $user->id)
+            // تغییر وضعیت غذا
+            $food->is_available = !$food->is_available;
+            $food->save();
+
+            // همه آپشن‌های این غذا رو با وضعیت غذا همگام کن
+            $food->options()->update(['is_available' => $food->is_available]);
+
+            $message = 'وضعیت غذا و آپشن‌های آن تغییر کرد';
+        }
+
+        elseif ($type == "option") {
+            $option = FoodOption::findOrFail($id);
+
+            // تغییر وضعیت آپشن
+            $option->is_available = !$option->is_available;
+            $option->save();
+
+            // حالا باید وضعیت غذا رو بر اساس آپشن‌ها بروز کنیم
+            $food = $option->food; // فرض: رابطه belongsTo به اسم food داری
+
+            // اگر همه آپشن‌ها غیرفعال شدن → غذا غیرفعال
+            // اگر حداقل یکی فعال شد → غذا فعال
+            $hasActiveOption = $food->options()->where('is_available', true)->exists();
+            $allInactive     = $food->options()->where('is_available', false)->count() === $food->options()->count();
+
+            $shouldBeAvailable = $hasActiveOption; // یا می‌تونی از !$allInactive استفاده کنی
+
+            if ($food->is_available != $shouldBeAvailable) {
+                $food->is_available = $shouldBeAvailable;
+                $food->save();
+            }
+
+            $message = 'وضعیت آپشن و غذا (در صورت نیاز) تغییر کرد';
+        }
+
+        elseif ($type == "category") {
+            $category = Category::findOrFail($id);
+            $user     = auth()->user();
+            $rest     = Restaurant::where('user_id', $user->id)->firstOrFail();
+
+            $foods = Food::where('restaurant_id', $rest->id)
                 ->where('food_categories_id', $id)
                 ->get();
 
-            foreach ($foods as $food) {
-                $food->is_available = false;
-                $food->save();
-                $food->options()->update(['is_available' => false]);
+            if ($foods->isEmpty()) {
+                return api_response([], 'این دسته‌بندی غذایی ندارد');
             }
+
+            // تعداد غذاهای فعال در این دسته
+            $activeCount   = $foods->where('is_available', true)->count();
+            $totalCount    = $foods->count();
+
+            // اگر بیشتر از نصف فعال بودن → همه رو غیرفعال کن
+            // در غیر این صورت → همه رو فعال کن
+            $shouldActivate = $activeCount <= $totalCount / 2;
+
+            foreach ($foods as $food) {
+                if ($food->is_available != $shouldActivate) {
+                    $food->is_available = $shouldActivate;
+                    $food->save();
+                }
+
+                // آپشن‌ها رو هم با غذا همگام کن
+                $food->options()->update(['is_available' => $shouldActivate]);
+            }
+
+            $statusText = $shouldActivate ? 'فعال' : 'غیرفعال';
+            $message = "همه غذاهای این دسته با موفقیت $statusText شدند";
+
+            return api_response([], $message);
+        }
+        else {
+            return api_response([], 'نوع نامعتبر است', false);
         }
 
-        return api_response([],'وضعیت تغییر کرد');
-
-
+        return api_response([], $message ?? 'وضعیت تغییر کرد');
     }
+
+//    public function change_status(Request $request)
+//    {
+//      $type =  $request->input('type');
+//        $id =  $request->input('id');
+//      if ($type == "food") {
+//          $food = Food::find($id);
+//          if ($food->is_available == false) {
+//              $food->is_available = true;
+//              $food->save();
+//              $food->options()->update(['is_available' => true]);
+//          }
+//          else{
+//              $food->is_available = false;
+//              $food->save();
+//              $food->options()->update(['is_available' => false]);
+//          }
+//
+//      }
+//      elseif ($type == "option") {
+//          $option = FoodOption::find($id);
+//          if ($option->is_available == false) {
+//              $option->is_available = true;
+//              $option->save();
+//          }
+//          else{
+//              $option->is_available = false;
+//              $option->save();
+//          }
+//      }
+//        if ($type == "category") {
+//            $category = Category::find($id);
+//            $user = auth()->user();
+//
+//            $foods = Food::where('user_id', $user->id)
+//                ->where('food_categories_id', $id)
+//                ->get();
+//
+//            foreach ($foods as $food) {
+//                $food->is_available = false;
+//                $food->save();
+//                $food->options()->update(['is_available' => false]);
+//            }
+//        }
+//
+//        return api_response([],'وضعیت تغییر کرد');
+//
+//
+//    }
 
 
 
@@ -211,17 +302,20 @@ class ProductsMenuController extends controller
     {
         $request->validate([
             'id' => 'required|exists:foods,id',
-            'name' => 'required|string',
-            'is_available' => 'required|boolean',
+            'name' => 'nullable|string',
+            'is_available' => 'nullable|boolean',
             'description' => 'nullable|string',
             'options' => 'array|nullable',
             'options.*.id' => 'nullable|exists:food_options,id',
-            'options.*.name' => 'required|string',
-            'options.*.price' => 'required|numeric',
+            'options.*.name' => 'nullable|string',
+            'options.*.price' => 'nullable|numeric',
             'options.*.price_discount' => 'nullable|numeric',
             'options.*.discount_percentage' => 'nullable|numeric',
-            'options.*.is_available' => 'required|boolean',
+            'options.*.is_available' => 'nullable|boolean',
         ]);
+        if (!$request->name) {
+            return api_response([],'اسم غذا باید وارد شود',422);
+        }
         $food = Food::findOrFail($request->id);
 
         $food->update([

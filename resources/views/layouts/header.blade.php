@@ -5,6 +5,25 @@
         </button>
         <h1 class="text-xl font-bold text-gray-700">پنل مدیریت غذارسان</h1>
     </div>
+    <div class="flex items-center gap-6">
+        @php
+            $Count = \App\Models\RequestDiscount::where('is_seen', 0)->count();
+        @endphp
+
+        <div class="relative">
+            <a href="{{ route('admin.request-discounts.index') }}" class="relative text-gray-600 hover:text-blue-600 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+                </svg>
+
+                @if($Count > 0)
+                    <span class="absolute -top-1 -right-1 bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-full shadow">
+                {{ $Count }}
+            </span>
+                @endif
+            </a>
+        </div>
 
     <div class="flex items-center gap-6">
         @php

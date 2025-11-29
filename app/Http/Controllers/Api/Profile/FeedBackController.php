@@ -21,13 +21,13 @@ class FeedBackController extends Controller
             'text' => $request->text,
             'rating' => $request->rating,
         ]);
-        return api_response();
+        return api_response([],'موفقیت ثبت شد');
 
     }
     public function index()
     {
         $user = auth()->user();
-        $feed  = FeedBack::where('user_id', $user->id)->get();
+        $feed  = FeedBack::where('user_id', $user->id)->latest()->get();
         $a = $feed->map(function ($item) {
             return [
                 'id' => $item->id,
