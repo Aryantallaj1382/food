@@ -275,7 +275,7 @@ class ProductsMenuController extends controller
         }
         $total = $query->where('type', 'credit')->sum('amount');
 
-        $payment = $query->orderBy('created_at', 'desc')->paginate(15);
+        $payment = $query->orderBy('created_at', 'desc')->paginate(50);
 
 
         $payment->getCollection()->transform(function ($pay) {

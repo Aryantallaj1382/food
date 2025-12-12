@@ -31,10 +31,12 @@ Route::get('/search', [\App\Http\Controllers\Api\Food\SearchController::class,'s
 Route::get('/main', [\App\Http\Controllers\Api\MainController::class,'index']);
 Route::get('/category', [\App\Http\Controllers\Api\MainController::class,'category']);
 Route::post('/complete-order', [\App\Http\Controllers\Api\Profile\ProfileController::class,'completed_order'])->middleware('auth:sanctum');
+Route::post('/complete-order', [\App\Http\Controllers\Api\Profile\ProfileController::class,'completed_order'])->middleware('auth:sanctum');
 Route::get('/near_restaurant', [\App\Http\Controllers\Api\Profile\nearestRestaurantsController::class,'nearestRestaurants']);
 
 Route::prefix('profile')->middleware('auth:sanctum')->controller(\App\Http\Controllers\Api\Profile\ProfileController::class)->group(function () {
     Route::get('/', 'index');
+    Route::post('/order/completed', 'message');
     Route::post('/store', 'store');
     Route::get('/order', [UserOrderController::class, 'index']);
     Route::get('/order/{id}', [UserOrderController::class, 'show']);

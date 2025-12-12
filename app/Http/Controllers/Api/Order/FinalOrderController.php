@@ -125,17 +125,21 @@ class FinalOrderController extends Controller
             }
             if ($discount->one_time_use == 1)
             {
-                $order = Order::where('user_id' , $user->id)->where('payment_status' , 'paid')->where('discount_code' , $discount->name)->exists();
-                if ($order)
-                {
-                    return api_response([], 'از این کد تخفیف قبلا استفاده کردید' ,400);
+                $usedBefore = Order::where('user_id' , $user->id)
+                    ->where('payment_status' , 'paid')
+                    ->where('discount_code' , $discount->name)
+                    ->exists();
+
+                if ($usedBefore) {
+                    return response()->json(['data'=>'https://testghazaresan.ir']);
                 }
+
             }
 
             $total = $total - ($total * $discount->percentage/100);
             $order->discount_percentage = $discount->percentage ;
             $order->save();
-            return $total;
+
         }
 
 
@@ -297,11 +301,15 @@ class FinalOrderController extends Controller
 
         if ($discount->one_time_use == 1)
         {
-            $order = Order::where('user_id' , $user->id)->where('payment_status' , 'paid')->where('discount_code' , $discount->name)->exists();
-            if ($order)
-            {
+            $usedBefore = Order::where('user_id' , $user->id)
+                ->where('payment_status' , 'paid')
+                ->where('discount_code' , $discount->name)
+                ->exists();
+
+            if ($usedBefore) {
                 return api_response([], 'از این کد تخفیف قبلا استفاده کردید' ,400);
             }
+
         }
         return api_response([
             'code' =>$discount->name,

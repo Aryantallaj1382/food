@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Food;
 use App\Models\Restaurant;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SearchController extends Controller
 {
@@ -18,9 +19,13 @@ class SearchController extends Controller
 
         // -------------------- RESTAURANTS --------------------
         $restaurants = Restaurant::query()
-            ->orderByDesc('is_open')
-            ->orderBy('discount_percentage')
-            ->select('restaurants.*')
+            ->select('restaurants.*') // اول select
+            ->withAvg(['comments as rate' => function ($query) {
+                $query->select(DB::raw('avg(rating)'))
+                    ->whereHas('order', function ($q) {
+                        $q->whereColumn('orders.restaurant_id', 'restaurants.id');
+                    });
+            }], 'rating')
             ->when($search, function ($query, $search) {
                 $query->where('restaurants.name', 'LIKE', "%{$search}%");
             })
@@ -29,14 +34,15 @@ class SearchController extends Controller
                     $q->whereIn('categories.id', $slug);
                 }, '=', count($slug));
             })
-
-
             ->when($taem, function ($query) {
-                $query->whereNotNull('discount');
+                $query->whereNotNull('team_text');
             })
-
+            ->orderByDesc('is_open')
+            ->orderByDesc('discount_percentage')
+            ->orderByDesc('rate')
             ->take(10)
             ->get();
+
 
 
         // -------------------- FOODS --------------------

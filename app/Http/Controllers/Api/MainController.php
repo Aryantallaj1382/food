@@ -25,22 +25,23 @@ class MainController extends Controller
 
         $sliders = Slider::orderBy('order', 'asc')->select(['id','image','link', 'order'])->get();
 
-        $foods = FoodOption::with(['food.restaurant'])
-            ->whereNotNull('price_discount')
+        $foods = Restaurant::
+        whereNotNull('team_text')
+            ->orderByDesc('is_open')
+            ->withAvg(['comments as rate' => function ($query) {
+                $query->select(\DB::raw('avg(rating)'))
+                    ->whereHas('order', function ($q) {
+                        $q->whereColumn('orders.restaurant_id', 'restaurants.id');
+                    });
+            }], 'rating')
+            ->orderBy('rate', 'desc')
             ->get()
-            ->groupBy(fn($item) => $item->food->restaurant->id)
-            ->map(function ($group) {
+            ->map(function ($restaurant) {
 
-                $restaurant = $group->first()->food->restaurant;
 
-                $foodImage = optional($group->first()->food)->image;
+                $foodImage = optional($restaurant->foods->first())->image;
 
-                $discounts = $group->map(function ($item) {
-                    $percent = round((($item->price - $item->price_discount) / $item->price) * 100);
-                    return "{$percent} درصد تخفیف برای {$item->food->name} {$item->name}";
-                })->sortByDesc('is_open')
-                    ->values();
-                ;
+                $discounts = [$restaurant->team_text];
 
                 return [
                     'restaurant_name' => $restaurant->name,
@@ -56,10 +57,16 @@ class MainController extends Controller
             ->values();
 
 
-
         $restaurants = Restaurant::whereNotNull('discount_percentage')
             ->orderByDesc('is_open')
-                ->orderBy('discount_percentage')
+            ->orderBy('discount_percentage','desc')
+            ->withAvg(['comments as rate' => function ($query) {
+                $query->select(\DB::raw('avg(rating)'))
+                    ->whereHas('order', function ($q) {
+                        $q->whereColumn('orders.restaurant_id', 'restaurants.id');
+                    });
+            }], 'rating')
+            ->orderBy('rate', 'desc')
             ->take(7)
             ->get()->map(function ($restaurant) {
                 return [

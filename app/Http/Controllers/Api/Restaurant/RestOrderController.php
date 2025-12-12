@@ -67,13 +67,22 @@ class RestOrderController extends Controller
             })
             ->latest()
             ->paginate(15);
-        $order = Order::whereRelation('user' , 'id' , $user->id)->where('payment_status' , 'paid')->orWhere('payment_status' , 'cash')
+        $order = Order::whereRelation('user', 'id', $user->id)
+            ->where(function ($q) {
+                $q->where('payment_status', 'paid')
+                    ->orWhere('payment_status', 'cash');
+            })
             ->whereDate('created_at', Carbon::today())
-            ->where('status','!=','delivery')->
-            where('status','!=','completed')->
-            where('status','!=','rejected   ')->
-            whereNotNull('time')->where('time','!=','now')->latest()->get();
-            $a = $order->isEmpty() ? 0 : 1;
+            ->where('status','!=','delivery')
+            ->where('status','!=','completed')
+            ->where('status','!=','rejected')
+            ->whereNotNull('time')
+            ->where('time','!=','now')
+            ->latest()
+            ->get();
+
+        $a = $order->isEmpty() ? 0 : 1;
+
         $orders->getCollection()->transform(function($order){
             return [
                 'id' => $order->id,

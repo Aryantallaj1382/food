@@ -18,11 +18,21 @@ class ProfileController extends Controller
         $user = auth()->user();
         $addresses = $user->addresses->where('is_main', true)->first();
         $order = Order::where('user_id', $user->id)
-            ->where('status', 'processing')
-            ->Orwhere('status', 'pending')
+            ->where(function ($q) {
+                $q->where('status', 'processing')
+                    ->orWhere('status', 'pending');
+            })
             ->where('is_received', false)
-            ->whereDate('created_at', Carbon::today()) // فقط امروز
+            ->whereDate('created_at', Carbon::today())
             ->get();
+        $order_received = Order::where('user_id', $user->id)
+            ->where('is_received', true)
+            ->where('no_message', false)            // فقط اگر false بود
+            ->whereDoesntHave('comment')            // و کامنت نداشت
+            ->first();
+
+
+
         return api_response([
             'first_name' => $user->first_name,
             'last_name' => $user->last_name,
@@ -30,13 +40,22 @@ class ProfileController extends Controller
             'phone' => $user->phone,
             'balance' => (int)$user->wallet?->balance ?? 0,
             'address' => $addresses,
+            'complete_order' => $order_received ?(int)$order_received?->id:null,
             'orders' => $order->map(function ($order) {
+                $time = null;
+                if ($order->time == 'now') {
+                    $now = Carbon::parse($order->created_at)->timezone('Asia/Tehran');
+
+                    $rest_time = (int)$order->restaurant->grt_ready_maximum;
+
+                    $time = $now->copy()->addMinutes($rest_time);
+                } else {
+                    $time = $order->time;
+                }
                 return [
                     'name' => $order->restaurant->name,
                     'id' => $order->id,
-                    'get_ready_time' => $order->created_at && Carbon::parse($order->created_at)->isToday()
-                        ? ($order->get_ready_time ?? $order->time)
-                        : 'now',
+                    'get_ready_time' => $time instanceof Carbon ? $time->format('H:i') : $time,
                     ];
             })
         ]);
@@ -101,6 +120,16 @@ class ProfileController extends Controller
             ]);
         }
         return api_response([],'با موفقیت وضعیت تغییر کرد' );
+
+    }
+    public function message(Request $request)
+    {
+        $id = $request->id;
+        $order = Order::find($id);
+        $order->update([
+            'no_message' => true,
+        ]);
+        return api_response([],'با تشکر');
 
     }
 }

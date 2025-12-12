@@ -51,7 +51,7 @@ class PayAgainController extends Controller
         $order->save();
 
         $b = $a->pay($invoiceNo , (int)$order->total_amount , 'https://api.testghazaresan.ir/api/order/callback?order_id=' . $order->id. '&uni=' . $x );
-        return api_response($b,'سفارش با موفقیت ثبت شد.');
+        return api_response($b,);
     }
     protected $payment;
 

@@ -13,6 +13,7 @@ class Order extends Model
     protected $guarded = [];
     protected $casts = [
         'restaurant_accept'=>'boolean',
+        'no_message'=>'boolean',
     ];
         public function user()
     {
