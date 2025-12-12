@@ -11,12 +11,25 @@ use Illuminate\Support\Facades\Storage;
 
 class AdminFoodController extends Controller
 {
+
+
+    // فعال/غیرفعال کردن غذا
+    public function toggle1(Food $food)
+    {
+        $food->update(['is_available' => !$food->is_available]);
+        return back()->with('success', "وضعیت «{$food->name}» با موفقیت تغییر کرد.");
+    }
+
+// فعال کردن همه آپشن‌ها
+
+
+
+
+
 // Admin/FoodController.php
     public function toggle(FoodOption $option)
     {
         $option->update(['is_available' => ! $option->is_available]);
-
-        // چک کن ببین همه آپشن‌های این غذا فعال شدن یا نه
         $allActive = $option->food->options()->where('is_available', 0)->doesntExist();
 
         return response()->json([
@@ -26,19 +39,14 @@ class AdminFoodController extends Controller
     }
     public function activateAllOptions(Food $food)
     {
-        // همه آپشن‌های این غذا رو فعال کن
         $food->options()->update(['is_available' => 1]);
-
-        // یا اگر می‌خوای لاگ بگیری:
-        // DB::table('food_options')->where('food_id', $food->id)->update(['is_active' => 1]);
-
         return back()->with('success', "همه آپشن‌های «{$food->name}» با موفقیت فعال شدند.");
     }
     public function inactiveFoods()
     {
         $foods = Food::inactive()
             ->with('restaurant')
-            ->with('inactiveOptions') // فقط اپشن‌های غیرفعال بارگذاری می‌شود
+            ->with('inactiveOptions')
             ->orderBy('restaurant_id')
             ->orderBy('id')
             ->paginate(25);
@@ -46,13 +54,33 @@ class AdminFoodController extends Controller
         return view('admin.foods.inactive', compact('foods'));
     }
 
-    public function restaurant($id)
+    public function restaurant(Request $request, $id)
     {
-        $foods = Food::where('restaurant_id',$id)->paginate();
-        $rest = Restaurant::find($id);
-        return view('admin.food.restaurant',compact(['foods', 'rest']));
+        $query = Food::with('category')
+            ->where('restaurant_id', $id);
 
+        // فیلتر بر اساس نام غذا
+        if ($request->filled('search')) {
+            $query->where('foods.name', 'like', "%{$request->search}%");
+        }
+
+
+        if ($request->filled('category_id')) {
+            $query->where('food_categories_id', $request->category_id);
+        }
+
+        $query->join('food_categories', 'food_categories.id', '=', 'foods.food_categories_id')
+            ->orderBy('food_categories.name', 'asc')
+            ->select('foods.*'); // فقط ستون‌های foods را انتخاب کن
+
+
+        $foods = $query->paginate(15)->withQueryString();
+
+        $rest = Restaurant::findOrFail($id);
+
+        return view('admin.food.restaurant', compact('foods', 'rest'));
     }
+
     public function create($restaurant_id)
     {
         $restaurant = Restaurant::findOrFail($restaurant_id);
@@ -82,7 +110,14 @@ class AdminFoodController extends Controller
         $data['restaurant_id'] = $restaurant_id;
 
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('foods', 'public');
+            $coverImage = $request->file('image');
+            $fileName = time() . '_food.' . $coverImage->getClientOriginalExtension();
+            $uploadPath = public_path('uploads/foods');
+            if (!file_exists($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
+            $coverImage->move($uploadPath, $fileName);
+            $data['image'] = 'uploads/foods/' . $fileName;
         }
 
         $food = Food::create($data);
@@ -112,30 +147,44 @@ class AdminFoodController extends Controller
         return view('admin.food.edit', compact('food', 'restaurant_id'));
     }
 
-    public function update(Request $request, $restaurant_id, Food $food)
+    public function update(Request $request, $restaurant_id, $id)
     {
+        $food = Food::find($id);
         $request->validate([
             'name'        => 'required|string|max:255',
             'image'       => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'food_categories_id'   => 'required',
+            'about_category'   => 'nullable',
             'description' => 'nullable|string',
 
             // اعتبارسنجی گزینه‌ها
             'options'     => 'required|array|min:1',
-            'options.*.title'           => 'required|string|max:100',
-            'options.*.price'           => 'required|numeric|min:0',
+            'options.*.title'           => 'nullable|string|max:100',
+            'options.*.price'           => 'nullable|numeric|min:0',
             'options.*.price_discount'  => 'nullable|numeric|min:0',
-            'options.*.is_available'    => 'required|in:0,1',
+            'options.*.is_available'    => 'nullable|in:0,1',
             'options.*.dish_price'      => 'nullable|numeric|min:0',
             'options.*.id'              => 'nullable|exists:food_options,id', // برای گزینه‌های موجود
         ]);
 
-        $data = $request->only(['name', 'food_categories_id', 'description']);
-
-        // تصویر جدید
+        $data = $request->only(['name', 'food_categories_id', 'description','about_category']);
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('foods', 'public');
+            $coverImage = $request->file('image');
+            $fileName = time() . '_food.' . $coverImage->getClientOriginalExtension();
+            $uploadPath = public_path('uploads/foods');
+            if (!file_exists($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }if (!empty($data['image']) && file_exists(public_path($data['image']))) {
+                unlink(public_path($data['image']));
+            }
+            $coverImage->move($uploadPath, $fileName);
+
+            $data['image'] = 'uploads/foods/' . $fileName;
         }
+
+
+
+
 
         $food->update($data);
 

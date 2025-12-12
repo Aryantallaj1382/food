@@ -30,6 +30,7 @@ class MainController extends Controller
             ->get()
             ->groupBy(fn($item) => $item->food->restaurant->id)
             ->map(function ($group) {
+
                 $restaurant = $group->first()->food->restaurant;
 
                 $foodImage = optional($group->first()->food)->image;
@@ -37,14 +38,16 @@ class MainController extends Controller
                 $discounts = $group->map(function ($item) {
                     $percent = round((($item->price - $item->price_discount) / $item->price) * 100);
                     return "{$percent} درصد تخفیف برای {$item->food->name} {$item->name}";
-                })->values();
+                })->sortByDesc('is_open')
+                    ->values();
+                ;
 
                 return [
                     'restaurant_name' => $restaurant->name,
                     'restaurant_id' => $restaurant->id,
                     'restaurant_image' => $restaurant->image,
-                    'rate' => $restaurant->rate,
-                    'rate_count' => $restaurant->rate_count,
+                    'rate' =>$restaurant->rate,
+                    'rate_count' => $restaurant->rate,
                     'is_open' => $restaurant->is_open,
                     'food_image' => $foodImage,
                     'foods' => $discounts,
@@ -53,9 +56,10 @@ class MainController extends Controller
             ->values();
 
 
+
         $restaurants = Restaurant::whereNotNull('discount_percentage')
             ->orderByDesc('is_open')
-            ->orderBy('discount_percentage')
+                ->orderBy('discount_percentage')
             ->take(7)
             ->get()->map(function ($restaurant) {
                 return [
@@ -64,15 +68,15 @@ class MainController extends Controller
                         'image' => $restaurant->image,
                         'is_open' => $restaurant->is_open,
                         'name' => $restaurant->name,
-                        'rate_count' => $restaurant->rate_count,
-                        'rate' => round($restaurant->rate),
+                        'rate_count' =>$restaurant->rate,
+                        'rate' => $restaurant->rate,
                         'food_image' => optional($restaurant->foods->first())->image,
                         'discount_percentage' => $restaurant->discount_percentage,
                 ];
             });
         $topRestaurants = Restaurant::withAvg('comments', 'rating')
-            ->orderByDesc('comments_avg_rating')
             ->orderByDesc('is_open')
+            ->orderByDesc('comments_avg_rating')
             ->whereHas('categories', function ($q) {
                 $q->whereIn('categories.id', [1, 2]);
             })
@@ -84,10 +88,10 @@ class MainController extends Controller
                     'image' => $restaurant->image,
                     'is_open' => $restaurant->is_open,
                     'name' => $restaurant->name,
-                    'rate' => (int)$restaurant->comments_avg_rating,   // ⭐ بهترین امتیاز
+                    'rate' => $restaurant->rate,   // ⭐ بهترین امتیاز
                     'food_image' => optional($restaurant->foods->first())->image,
                     'discount_percentage' => $restaurant->discount_percentage,
-                    'rate_count' => (float) number_format($restaurant->comments()->avg('rating'), 1),
+                    'rate_count' => $restaurant->rate,
                 ];
             });
 

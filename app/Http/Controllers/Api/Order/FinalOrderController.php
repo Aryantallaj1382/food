@@ -14,10 +14,7 @@ use App\Models\Restaurant;
 use App\Models\Transaction;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use IPPanel\Client;
-use Morilog\Jalali\Jalalian;
-use SoapClient;
+
 
 class FinalOrderController extends Controller
 {
@@ -85,7 +82,7 @@ class FinalOrderController extends Controller
             $order->items()->create([
                 'food_option_id' => $item['id'],
                 'quantity' => $item['quantity'],
-                'price' => $food->price,
+                'price' => $food->price_discount ??$food->price,
                 'dish_quantity' => $dishCount,
             ]);
         }
@@ -104,6 +101,8 @@ class FinalOrderController extends Controller
         {
             $rest_discount = ($rest->discount_percentage * $total)/100;
             $total = $total - $rest_discount;
+            $order->discount_percentage = $rest->discount_percentage ;
+            $order->save();
         }
         elseif (!empty($request->discount_code))
         {
@@ -134,6 +133,8 @@ class FinalOrderController extends Controller
             }
 
             $total = $total - ($total * $discount->percentage/100);
+            $order->discount_percentage = $discount->percentage ;
+            $order->save();
             return $total;
         }
 
@@ -147,6 +148,24 @@ class FinalOrderController extends Controller
                 'amount' => $total,
                 'payment_method' => 'wallet',
             ]);
+            $message = 'کاربر '.$order->user->name.'یک سفارش پرداخت در محل ثبت کرد';
+            $order->total_amount = $order->total_price;
+            $order->save();
+            Notification::query()->create([
+                'text' => $message,
+                'is_seen' => 0,
+            ]);
+            Transaction::updateOrCreate([
+                'tracking_code' => $order->id ,
+            ],[
+                'user_id' => $user->id,
+                'restaurant_id'=> $order->restaurant->id,
+                'type' => 'credit' ,
+                'description' => 'سفارش غذا با کد سفارش '. $order->id,
+                'amount' => $order->total_price,
+                'tracking_code' => $order->id ,
+                'status' => 'success'
+            ]);
             return response()->json(['data'=>'https://testghazaresan.ir/search/payment/success/'.$order->id]);
         }
         if ($request->is_wallet == true)
@@ -157,6 +176,8 @@ class FinalOrderController extends Controller
                 $new_balance =  $balance - $total;
                 $user->wallet->balance = $new_balance;
                 $user->wallet->save();
+                $order->total_amount = $total;
+                $order->save();
                 $order->update(['payment_status' => 'paid', 'status' => 'pending' , 'total_amount' => $total]);
                 Payment::create([
                     'user_id' => $user->id,
@@ -165,12 +186,25 @@ class FinalOrderController extends Controller
                     'payment_method' => 'wallet',
                     'gateway' => $request->gateway,
                 ]);
-                return api_response([],'سفارش با موفقیت ثبت شد.');
+                Transaction::updateOrCreate([
+                    'tracking_code' => $order->id ,
+                ],[
+                    'user_id' => $user->id,
+                    'restaurant_id'=> $order->restaurant->id,
+                    'type' => 'credit' ,
+                    'description' => 'سفارش غذا با کد سفارش '. $order->id,
+                    'amount' => $order->total_price,
+                    'tracking_code' => $order->id ,
+                    'status' => 'success'
+                ]);
+                return api_response('https://testghazaresan.ir/search/payment/success/'.$order->id,'سفارش با موفقیت ثبت شد.');
             }
             else{
                 $new_balance = $total - $balance;
                 $user->wallet->balance = 0;
                 $user->wallet->save();
+                $order->total_amount = $total;
+                $order->save();
                 Payment::create([
                     'user_id' => $user->id,
                     'order_id' => $order->id,
@@ -180,7 +214,7 @@ class FinalOrderController extends Controller
                 ]);
                 $x = ui_code($order->id , $user->id);
                 $a = new ParsianPayment();
-                $b = $a->pay($x , (int)$total , 'https://api.testghazaresan.ir/api/order/callback?order_id=' . $order->id. '&uni=' . $x );
+                $b = $a->pay($order->id , (int)$new_balance , 'https://api.testghazaresan.ir/api/order/callback?order_id=' . $order->id. '&uni=' . $x );
                 return api_response($b,'سفارش با موفقیت ثبت شد.');
             }
 
@@ -188,6 +222,8 @@ class FinalOrderController extends Controller
         }
         if ($request->is_wallet == false)
         {
+            $order->total_amount = $total;
+            $order->save();
             Payment::create([
                 'user_id' => $user->id,
                 'order_id' => $order->id,
@@ -224,7 +260,11 @@ class FinalOrderController extends Controller
         if ($rest?->free_shipping == 1){
             return api_response(0);
         }
-        if (!$rest->latitude || !$rest->longitude ||  !$address->latitude || !$address->longitude){
+        if (!$rest)
+        {
+            return api_response(0);
+        }
+        if (!$rest->latitude || !$rest->longitude ||  !$address?->latitude || !$address?->longitude){
             return api_response(0,'طول و عرض جغرافیایی یافت نشد');
         }
         $distance = distanceKm($rest->latitude, $rest->longitude, $address->latitude, $address->longitude);
@@ -285,7 +325,7 @@ class FinalOrderController extends Controller
             return $this->errorResponse('پارامترهای نامعتبر.');
         }
 
-        $order = Order::where('id', $order_id)->first();
+        $order = Order::where('id', $order_id)->orWhere('invoice_no' , $order_id)->first();
         $token = $order->authority;
         if (!$order) {
             return $this->errorResponse('سفارش یافت نشد.');
@@ -300,7 +340,7 @@ class FinalOrderController extends Controller
 
         if (!$confirmResult['success']) {
             $order->update([
-                'payment_status' => 'failed',
+                'payment_status' => 'pending',
             ]);
             return $this->errorResponse(
                 'پرداخت ناموفق بود. کد خطا: ' . ($confirmResult['code'] ?? 'نامشخص')
@@ -324,9 +364,16 @@ class FinalOrderController extends Controller
             'payment_id' => $payment->id,
             'restaurant_id'=> $order->restaurant->id,
             'type' => 'credit' ,
+            'description' => 'سفارش غذا با کد سفارش '. $order->id,
             'amount' => $order->total_price,
             'tracking_code' => $order->id ,
             'status' => 'success'
+        ]);
+        $message = 'کاربر '.$order->user->name.'یک سفارش پرداخت انلاین ثبت کرد';
+
+        Notification::query()->create([
+            'text' => $message,
+            'is_seen' => 0,
         ]);
 
         return $this->successResponse($order, 'پرداخت با موفقیت انجام شد.');

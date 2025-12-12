@@ -15,8 +15,8 @@
             <div class="flex items-center gap-2 w-full md:w-1/3">
                 <select name="status" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none">
                     <option value="">همه وضعیت‌ها</option>
-                    <option value="credit" @selected(($filters['status'] ?? '') === 'credit')>بستانکار</option>
-                    <option value="debit" @selected(($filters['status'] ?? '') === 'debit')>بدهکار</option>
+                    <option value="debit" @selected(($filters['status'] ?? '') === 'debit')>بستانکار</option>
+                    <option value="credit" @selected(($filters['status'] ?? '') === 'credit')>بدهکار</option>
                     <option value="zero" @selected(($filters['status'] ?? '') === 'zero')>صفر</option>
                 </select>
             </div>
@@ -39,8 +39,6 @@
                     <th class="py-3 px-4 font-semibold">#</th>
                     <th class="py-3 px-4 font-semibold">نام رستوران</th>
                     <th class="py-3 px-4 font-semibold">شماره رستوران</th>
-                    <th class="py-3 px-4 font-semibold">بستانکار (تومان)</th>
-                    <th class="py-3 px-4 font-semibold">بدهکار (تومان)</th>
                     <th class="py-3 px-4 font-semibold">مانده</th>
                     <th class="py-3 px-4 font-semibold">عملیات</th>
                 </tr>
@@ -51,14 +49,12 @@
                         <td class="py-3 px-4 font-medium text-gray-900">{{ $index + 1 }}</td>
                         <td class="py-3 px-4 font-semibold text-gray-800">{{ $restaurant->name }}</td>
                         <td class="py-3 px-4 font-semibold text-gray-800">{{ $restaurant->user?->mobile ?? '---' }}</td>
-                        <td class="py-3 px-4 text-green-600">{{ number_format($restaurant->credit_sum ?? 0) }}</td>
-                        <td class="py-3 px-4 text-red-500">{{ number_format($restaurant->debit_sum ?? 0) }}</td>
                         <td class="py-3 px-4">
-                            @if($restaurant->balance > 0)
+                            @if($restaurant->balance < 0)
                                 <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">
                                     {{ number_format($restaurant->balance) }} بستانکار
                                 </span>
-                            @elseif($restaurant->balance < 0)
+                            @elseif($restaurant->balance> 0)
                                 <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-semibold">
                                     {{ number_format(abs($restaurant->balance)) }} بدهکار
                                 </span>

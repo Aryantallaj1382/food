@@ -14,8 +14,7 @@ class Order extends Model
     protected $casts = [
         'restaurant_accept'=>'boolean',
     ];
-
-    public function user()
+        public function user()
     {
         return $this->belongsTo(User::class);
     }
@@ -37,7 +36,10 @@ class Order extends Model
             return $item->price * $item->quantity;
         });
     }
-
+    public function getPriceWithDiscountAttribute()
+    {
+        return $this->total_amount -($this->total_amount * $this->discount_percentage );
+    }
     public function getPayStatusFaAttribute()
     {
         $map = [
@@ -54,12 +56,15 @@ class Order extends Model
     {
         $map = [
             'pending' => 'در انتظار تایید',
-            'processing' => 'تایید شده',
-            'completed' => 'تکمیل‌شده',
+            'processing' => 'در حال آماده سازی',
+            'completed' => 'در انتظار پیک',
             'cancelled' => 'کنسل شده',
             'delivery' => 'تحویل به پیک',
             'rejected' => 'رد شده',
         ];
+        if ($this->payment_status == 'pending'){
+            return 'در مرحله ی پرداخت';
+        }
         return Arr::get($map, $this->status, 'نامشخص');
     }
     public function getStatusUserFaAttribute()
@@ -72,6 +77,9 @@ class Order extends Model
             'delivery' => 'تایید شده',
             'rejected' => 'رد شده',
         ];
+        if ($this->payment_status == 'pending'){
+            return 'در مرحله ی پرداخت';
+        }
         return Arr::get($map, $this->status, 'نامشخص');
     }
     public function getSendingMethodFaAttribute()

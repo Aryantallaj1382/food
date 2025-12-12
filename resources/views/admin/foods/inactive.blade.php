@@ -28,8 +28,8 @@
                         <thead class="bg-gray-900 text-white">
                         <tr>
                             <th class="px-6 py-4 text-right text-xs font-medium uppercase">#</th>
-                            <th class="px-6 py-4 text-right text-xs font-medium uppercase">غذا</th>
                             <th class="px-6 py-4 text-right text-xs font-medium uppercase">رستوران</th>
+                            <th class="px-6 py-4 text-right text-xs font-medium uppercase">غذا</th>
                             <th class="px-6 py-4 text-right text-xs font-medium uppercase">زیر مجموعه ها</th>
                             <th class="px-6 py-4 text-center text-xs font-medium uppercase">عملیات</th>
                         </tr>
@@ -40,19 +40,20 @@
                                 <td class="px-6 py-5 text-center text-sm font-medium text-gray-600">
                                     {{ $loop->iteration + ($foods->currentPage()-1)*$foods->perPage() }}
                                 </td>
-                                <td class="px-6 py-5">
-                                    <div class="font-bold text-gray-900">{{ $food->name }}</div>
-                                    <div class="text-xs text-gray-500">ID: {{ $food->id }}</div>
-                                </td>
+
                                 <td class="px-6 py-5">
                                     <div class="font-medium">{{ $food->restaurant?->name ?? '—' }}</div>
                                     <div class="text-xs text-gray-500">ID: {{ $food->restaurant_id }}</div>
                                 </td>
                                 <td class="px-6 py-5">
+                                    <div class="font-bold text-gray-900">{{ $food->name }}</div>
+                                    <div class="text-xs text-gray-500">ID: {{ $food->id }}</div>
+                                </td>
+                                <td class="px-6 py-5">
                                     <div class="flex flex-wrap gap-2">
                                         @foreach($food->inactiveOptions  as $option)
                                             <div class="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2">
-                                                <span class="text-sm font-medium">{{ $option->title }}</span>
+                                                <span class="text-sm font-medium">{{ $option->name }}</span>
                                                 <span class="text-xs text-gray-500">
                                                     ({{ number_format($option->price) }}₺)
                                                 </span>
@@ -61,9 +62,9 @@
                                                 <button
                                                     onclick="toggleOption({{ $option->id }}, {{ $food->id }})"
                                                     class="ml-2 px-3 py-1 rounded text-xs font-medium transition
-                                                        {{ $option->is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700 hover:bg-red-200' }}"
+                                                        {{ $option->is_available ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700 hover:bg-red-200' }}"
                                                     id="option-btn-{{ $option->id }}">
-                                                    {{ $option->is_active ? 'فعال' : 'غیرفعال' }}
+                                                    {{ $option->is_available ? 'فعال' : 'غیرفعال' }}
                                                 </button>
                                             </div>
                                         @endforeach
@@ -127,10 +128,23 @@
         function activateAll(foodId) {
             if (!confirm('همه آپشن‌های این غذا فعال شوند؟')) return;
 
-            axios.patch(`/admin/foods/${foodId}/activate-all-options`)
+            axios.patch(`/admin/foods11/activate-all-options/${foodId}`)
                 .then(() => {
-                    document.getElementById(`food-row-${foodId}`).remove();
-                    toastr.success('همه آپشن‌ها با موفقیت فعال شدند.');
+                    document.getElementById(`food-row-${foodId}`)?.remove();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'انجام شد!',
+                        text: 'همه آپشن‌ها با موفقیت فعال شدند.',
+                        timer: 2000,
+                        timerProgressBar: true,
+                        showConfirmButton: false
+                    }).then(() => {
+                        location.reload();
+                    });
+                })
+                .catch(() => {
+                    location.reload();
                 });
         }
     </script>

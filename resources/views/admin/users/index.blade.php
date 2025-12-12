@@ -37,7 +37,6 @@
                     <option value="">همه</option>
                     <option value="has_balance" {{ request('wallet_balance') == 'has_balance' ? 'selected' : '' }}>دارای موجودی</option>
                     <option value="zero_balance" {{ request('wallet_balance') == 'zero_balance' ? 'selected' : '' }}>موجودی صفر</option>
-                    <option value="no_wallet" {{ request('wallet_balance') == 'no_wallet' ? 'selected' : '' }}>بدون کیف پول</option>
                 </select>
             </div>
 
@@ -94,6 +93,11 @@
                                    class="inline-flex items-center gap-1 text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200
                   px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200">
                                     👁 مشاهده
+                                </a>
+                                <a href="{{ route('admin.users.edit_user', $user->id) }}"
+                                   class="inline-flex items-center gap-1 text-yellow-600 bg-yellow-50 hover:bg-yellow-100 border border-yellow-200
+          px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200">
+                                    ✏️ ویرایش
                                 </a>
 
                                 <form action="{{route('admin.users.delete' , $user->id)}}" method="POST"

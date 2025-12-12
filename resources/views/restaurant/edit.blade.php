@@ -51,7 +51,16 @@
                 <input type="text" name="name" id="name" required value="{{ old('name', $restaurant->name) }}"
                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none">
             </div>
-
+            <div>
+                <label for="mobile" class="block text-gray-700 font-medium mb-2">شماره تماس 3</label>
+                <input type="text" name="mobile" id="mobile" required value="{{ old('mobile', $restaurant->mobile) }}"
+                       class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none">
+            </div>
+            <div>
+                <label for="phone" class="block text-gray-700 font-medium mb-2">شماره تماس 4</label>
+                <input type="text" name="phone" id="phone" required value="{{ old('phone', $restaurant->phone) }}"
+                       class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none">
+            </div>
             <!-- انتخاب کاربر -->
             <div>
                 <label for="user_id" class="block text-gray-700 font-medium mb-2">انتخاب کاربر</label>
@@ -74,8 +83,18 @@
 
             <!-- توضیحات -->
             <div>
-                <label for="text" class="block text-gray-700 font-medium mb-2">توضیحات</label>
+                <label for="text" class="block text-gray-700 font-medium mb-2">توضیحات ارسال</label>
                 <input type="text" name="text" id="text" value="{{ old('text', $restaurant->text) }}"
+                       class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none">
+            </div>
+            <div>
+                <label for="description" class="block text-gray-700 font-medium mb-2"> توضیحات چشمک زن</label>
+                <input type="text" name="description" id="description" value="{{ old('description', $restaurant->description) }}"
+                       class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none">
+            </div>
+            <div>
+                <label for="team_text" class="block text-gray-700 font-medium mb-2">توضیحات تخفیف طعم دار</label>
+                <input type="text" name="team_text" id="team_text" value="{{ old('team_text', $restaurant->team_text) }}"
                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none">
             </div>
 
@@ -88,8 +107,23 @@
 
             <!-- تصویر جدید -->
             <div>
-                <label for="image" class="block text-gray-700 font-medium mb-2">تغییر عکس رستوران</label>
+                <label for="image" class="block text-gray-700 font-medium mb-2">لوگو رستوران</label>
                 <input type="file" name="image" id="image" accept="image/*"
+                       class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer focus:outline-none">
+            </div>
+
+
+
+            @if($restaurant->bg)
+                <div class="mb-4">
+                    <img src="{{ asset($restaurant->bg) }}" alt="تصویر رستوران" class="w-32 h-32 object-cover rounded">
+                </div>
+            @endif
+
+            <!-- تصویر جدید -->
+            <div>
+                <label for="bg" class="block text-gray-700 font-medium mb-2">عکس اصلی</label>
+                <input type="file" name="bg" id="bg" accept="image/*"
                        class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer focus:outline-none">
             </div>
 
@@ -102,12 +136,22 @@
 
             <!-- زمان آماده سازی -->
             <div>
-                <label for="grt_ready_minute" class="block text-gray-700 font-medium mb-2">زمان آماده‌سازی (دقیقه)</label>
+                <label for="grt_ready_minute" class="block text-gray-700 font-medium mb-2">زمان آماده‌سازی حداقل (دقیقه)</label>
                 <input type="number" name="grt_ready_minute" id="grt_ready_minute" min="0" value="{{ old('grt_ready_minute', $restaurant->grt_ready_minute) }}"
+                       class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none">
+            </div>
+            <div>
+                <label for="grt_ready_maximum" class="block text-gray-700 font-medium mb-2">زمان آماده‌سازی حداکثر (دقیقه)</label>
+                <input type="number" name="grt_ready_maximum" id="grt_ready_maximum" min="0" value="{{ old('grt_ready_maximum', $restaurant->grt_ready_maximum) }}"
                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none">
             </div>
 
             <!-- فاصله و هزینه کیلومتری -->
+            <div>
+                <label for="send_price" class="block text-gray-700 font-medium mb-2">هزینه ارسال (تومان)</label>
+                <input type="number" name="send_price" id="send_price" min="0" value="{{ old('send_price', $restaurant->send_price) }}" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none">
+            </div>
+
             <div>
                 <label for="distance_km" class="block text-gray-700 font-medium mb-2">فاصله کیلومتر</label>
                 <input type="number" name="distance_km" id="distance_km" min="0" value="{{ old('distance_km', $restaurant->distance_km) }}"
@@ -155,13 +199,18 @@
                 <label for="sending_way" class="block text-gray-700 font-medium mb-2">نحوه ارسال</label>
                 <select name="sending_way" id="sending_way" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none">
                     <option value="">انتخاب کنید</option>
-                    <option value="both" {{ $restaurant->sending_way=='پیک' ? 'selected' : '' }}>تحویل حضوری و پیک</option>
-                    <option value="in_person" {{ $restaurant->sending_way=='درب محل' ? 'selected' : '' }}>تحویل حضوری</option>
+                    <option value="both" {{ $restaurant->sending_way=='both' ? 'selected' : '' }}>تحویل حضوری و پیک</option>
+                    <option value="in_person" {{ $restaurant->sending_way=='in_person' ? 'selected' : '' }}>تحویل حضوری</option>
                 </select>
             </div>
 
 
             <!-- چک باکس ها -->
+            <div class="flex items-center mb-4">
+                <input type="checkbox" name="is_open" id="is_open" {{ $restaurant->is_open ? 'checked' : '' }} class="h-5 w-5 text-green-600 border-gray-300 rounded focus:ring-2 focus:ring-green-500">
+                <label for="is_open" class="ml-2 block text-gray-700 font-medium">فعال سازی رستوران</label>
+            </div>
+
             <div class="flex items-center mb-4">
                 <input type="checkbox" name="tax_enabled" id="tax_enabled" {{ $restaurant->tax_enabled ? 'checked' : '' }} class="h-5 w-5 text-green-600 border-gray-300 rounded focus:ring-2 focus:ring-green-500">
                 <label for="tax_enabled" class="ml-2 block text-gray-700 font-medium">آیا مالیات حساب شود</label>
@@ -184,8 +233,13 @@
 
             <!-- هزینه ارسال و درصد تخفیف -->
             <div>
-                <label for="send_price" class="block text-gray-700 font-medium mb-2">هزینه ارسال (تومان)</label>
-                <input type="number" name="send_price" id="send_price" min="0" value="{{ old('send_price', $restaurant->send_price) }}" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none">
+                <label for="free_shipping_minimum" class="block text-gray-700 font-medium mb-2">هزینه ارسال رایگان تا چند کیلومتر</label>
+                <input type="number" name="free_shipping_minimum" id="free_shipping_minimum" min="0" value="{{ old('free_shipping_minimum', $restaurant->free_shipping_minimum) }}" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none">
+            </div>
+
+            <div>
+                <label for="fee" class="block text-gray-700 font-medium mb-2">درصد کارمزد</label>
+                <input type="number" name="fee" id="fee" min="0" value="{{ old('fee', $restaurant->fee) }}" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none">
             </div>
 
             <div>

@@ -9,8 +9,16 @@ class UserOrderController
 {
     public  function  index()
     {
-        $orders = Order::where('user_id',auth()->user()->id)->where('payment_status','paid')->orWhere('payment_status','cash')->latest()->paginate(10);
-        $orders->getCollection()->transform(function($order){
+
+        $thirtyMinutesAgo = now()->subMinutes(30);
+
+            $orders = Order::where('user_id',auth()->user()->id)->where('payment_status','paid')->orWhere('payment_status','pending')->orWhere('payment_status','cash')->latest()->paginate(10);
+
+        $orders->getCollection()->transform(function($order) use($thirtyMinutesAgo){
+            if ($order->payment_status === 'pending' && $order->created_at->lt($thirtyMinutesAgo)) {
+                $order->payment_status = 'failed';
+                $order->save();
+            }
            return [
                 'id' => $order->id,
                 'restaurant_name' => $order->restaurant->name,
@@ -29,6 +37,7 @@ class UserOrderController
         return api_response($orders);
 
     }
+
     public function show($id)
     {
         $order = Order::find($id);
@@ -41,10 +50,10 @@ class UserOrderController
             'image' => $order->restaurant->image,
             'date' => $order->created_at,
             'price' => [
-                'total_amount_with_out_discount' => (int)$order->total_amount,
-                    'send_price' => (int)$order->send_price,
-                'total_price' => (int)$order->total_price,
-                'discount' => 0,
+                'total_amount_with_out_discount' => (int)$order->total_price,
+                'send_price' => (int)$order->send_price,
+                'total_price' => (int)$order->total_amount,
+                'discount' => $order->discount_percentage ?  $order->discount_percentage ."%".' ('. ((int)$order->total_price * $order->discount_percentage)/100 .' ) '  ??0 :0,
             ],
             'address' => $order->adress->address,
             'payment_method' => $order->payment_method,

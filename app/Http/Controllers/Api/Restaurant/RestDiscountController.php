@@ -42,7 +42,7 @@ class RestDiscountController extends Controller
             {
                 RequestDiscount::query()->create([
                     'restaurant_id' => $rest->id,
-                    'title' => 'رستوران '.$rest->name.' در خواست تخفیف طعم دار داد متن درخواست : ',
+                    'title' => 'مجموعه '.$rest->name.' در خواست تخفیف طعم دار داد متن درخواست : ',
                     'description' => $request->text,
                 ]);
 
@@ -50,7 +50,7 @@ class RestDiscountController extends Controller
             else{
                 RequestDiscount::query()->create([
                     'restaurant_id' => $rest->id,
-                    'title' => 'رستوران '.$rest->name.' در خواست لغو تخفیف طعم دار داد متن درخواست :',
+                    'title' => 'مجموعه '.$rest->name.' در خواست لغو تخفیف طعم دار داد متن درخواست :',
                     'description' => $request->text,
                 ]);
             }
@@ -67,7 +67,7 @@ class RestDiscountController extends Controller
             {
                 RequestDiscount::query()->create([
                     'restaurant_id' => $rest->id,
-                    'title' => 'رستوران '.$rest->name.' در خواست تخفیف خوشمزه دار داد متن درخواست : ',
+                    'title' => 'مجموعه '.$rest->name.' در خواست تخفیف خوشمزه دار داد متن درخواست : ',
                     'description' => $request->text,
                 ]);
 
@@ -75,7 +75,7 @@ class RestDiscountController extends Controller
             else{
                 RequestDiscount::query()->create([
                     'restaurant_id' => $rest->id,
-                    'title' => 'رستوران '.$rest->name.' در خواست لغو تخفیف خوشمزه دار داد متن درخواست :',
+                    'title' => 'مجموعه '.$rest->name.' در خواست لغو تخفیف خوشمزه دار داد متن درخواست :',
                     'description' => $request->text,
                 ]);
             }
@@ -92,14 +92,14 @@ class RestDiscountController extends Controller
             {
                 RequestDiscount::query()->create([
                     'restaurant_id' => $rest->id,
-                    'title' => 'رستوران '.$rest->name.' در خواست تخفیف اولین سفارش داد متن درخواست : ',
+                    'title' => 'مجموعه '.$rest->name.' در خواست تخفیف اولین سفارش داد متن درخواست : ',
                     'description' => $request->text,
                 ]);
             }
             else{
                 RequestDiscount::query()->create([
                     'restaurant_id' => $rest->id,
-                    'title' => 'رستوران '.$rest->name.' در خواست لغو تخفیف  اولین سفارش داد متن درخواست :',
+                    'title' => 'مجموعه '.$rest->name.' در خواست لغو تخفیف  اولین سفارش داد متن درخواست :',
                     'description' => $request->text,
                 ]);
             }
@@ -113,14 +113,14 @@ class RestDiscountController extends Controller
             {
                 RequestDiscount::query()->create([
                     'restaurant_id' => $rest->id,
-                    'title' => 'رستوران '.$rest->name.' در خواست کد تخفیف داد متن درخواست : ',
+                    'title' => 'مجموعه '.$rest->name.' در خواست کد تخفیف داد متن درخواست : ',
                     'description' => $request->text,
                 ]);
             }
             else{
                 RequestDiscount::query()->create([
                     'restaurant_id' => $rest->id,
-                    'title' => 'رستوران '.$rest->name.' در خواست لغو کد تخفیف  داد متن درخواست :',
+                    'title' => 'مجموعه '.$rest->name.' در خواست لغو کد تخفیف  داد متن درخواست :',
                     'description' => $request->text,
                 ]);
             }
@@ -135,7 +135,7 @@ class RestDiscountController extends Controller
             {
                 RequestDiscount::query()->create([
                     'restaurant_id' => $rest->id,
-                    'title' => 'رستوران '.$rest->name.' در خواست ارسال رایگان داد',
+                    'title' => 'مجموعه '.$rest->name.' در خواست ارسال رایگان داد',
                     'description' => $request->text,
                 ]);
 
@@ -143,7 +143,7 @@ class RestDiscountController extends Controller
             else{
                 RequestDiscount::query()->create([
                     'restaurant_id' => $rest->id,
-                    'title' => 'رستوران '.$rest->name.' در خواست لغو ارسال رایگان داد',
+                    'title' => 'مجموعه '.$rest->name.' در خواست لغو ارسال رایگان داد',
                 ]);
             }
             $discount->update([

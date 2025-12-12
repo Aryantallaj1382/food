@@ -12,13 +12,31 @@ use Illuminate\Support\Facades\Hash;
 
 class RestPanelController extends Controller
 {
+
     public function hasPendingOrder()
     {
         $user = auth()->user();
-        $rest = Restaurant::where('user_id', $user->id)->first();
-        $pending = Order::where('restaurant_id', $rest->id)->where('status', 'pending')->count();
-       $is_pending = $pending > 0 ? true : false;
-        return api_response(['havePending'=>$is_pending]);
+        $restaurant = Restaurant::where('user_id', $user->id)->firstOrFail();
+
+        $now = Carbon::now(); // زمان فعلی
+        $today = $now->format('Y-m-d');
+
+        $hasPending = Order::where('restaurant_id', $restaurant->id)
+            ->where('status', 'pending')
+            ->whereDate('created_at', $today) // فقط سفارش‌های امروز
+            ->where(function ($query) use ($now) {
+                $query->where('time', '!=','now') // اگر "now" بود → همیشه در انتظار حساب میشه
+                ->Where(function ($q) use ($now) {
+                    $q->whereNotNull('time')
+                        ->where('time', '!=', 'now')
+                        ->whereRaw("STR_TO_DATE(CONCAT(DATE(created_at), ' ', time), '%Y-%m-%d %H:%i') > ?", [$now]);
+                });
+            })
+            ->exists();
+
+        return api_response([
+            'havePending' => $hasPending
+        ]);
     }
     public function panel()
     {

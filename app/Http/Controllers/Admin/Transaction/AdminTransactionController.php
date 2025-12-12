@@ -47,17 +47,14 @@ class AdminTransactionController extends Controller
         $restaurant = Restaurant::findOrFail($id);
 
         // گرفتن تراکنش‌ها
-        $transactions = $restaurant->transactions()->orderBy('created_at', 'desc');
+        $transactions = $restaurant->transactions()->where('status' , 'success')->orderBy('created_at', 'desc');
 
         // فیلتر بر اساس نوع تراکنش
         if ($request->filled('type')) {
             $transactions->where('type', $request->type);
         }
 
-        // فیلتر بر اساس وضعیت تراکنش
-        if ($request->filled('status')) {
-            $transactions->where('status', $request->status);
-        }
+
 
         // امکان paginate کردن برای مدیریت تعداد رکوردها
         $transactions = $transactions->paginate(20)->withQueryString();
@@ -66,8 +63,10 @@ class AdminTransactionController extends Controller
         $credit_sum = $restaurant->transactions()->where('type', 'credit')->where('status', 'success')->sum('amount');
         $debit_sum = $restaurant->transactions()->where('type', 'debit')->where('status', 'success')->sum('amount');
         $balance = $credit_sum - $debit_sum;
+        $statusText = $balance > 0 ? 'بستانکار' : ($balance < 0 ? 'بدهکار' : 'تسویه');
+        $statusColor = $balance > 0 ? 'text-green-600' : ($balance < 0 ? 'text-red-600' : 'text-gray-600');
 
-        return view('admin.transation.show', compact('restaurant', 'transactions', 'credit_sum', 'debit_sum', 'balance'))
+        return view('admin.transation.show', compact('restaurant', 'transactions', 'credit_sum', 'debit_sum', 'balance', 'statusText', 'statusColor'))
             ->with('filters', $request->only(['type', 'status']));
     }
 // نمایش فرم ثبت تراکنش بستانکار
@@ -89,7 +88,7 @@ class AdminTransactionController extends Controller
         ]);
 
         $restaurant->transactions()->create([
-            'type' => 'credit',
+            'type' => 'debit',
             'status' => 'success',
             'amount' => $request->amount,
             'description' => $request->description,

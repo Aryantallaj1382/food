@@ -46,28 +46,37 @@ class TelephoneOrderController extends Controller
     }
 
     // دریافت غذاهای یک رستوران
+// TelephoneOrderController.php
+
     public function getRestaurantFoods($restaurant_id)
     {
-        $foods = Food::with('options')
+        $foods = Food::with(['options', 'category'])
             ->where('restaurant_id', $restaurant_id)
+            ->where('is_available', true)
             ->get()
-            ->map(function($food) {
+            ->groupBy('category.name') // گروه‌بندی بر اساس نام دسته‌بندی
+            ->map(function ($foodsInCategory, $categoryName) {
                 return [
-                    'id' => $food->id,
-                    'name' => $food->name,
-                    'options' => $food->options->map(function($option) {
+                    'category' => $categoryName ?: 'بدون دسته‌بندی',
+                    'foods' => $foodsInCategory->map(function ($food) {
                         return [
-                            'id' => $option->id,
-                            'name' => $option->name,
-                            'price' => $option->price, // قیمت نهایی با تخفیف
+                            'id' => $food->id,
+                            'name' => $food->name,
+                            'options' => $food->options->map(function ($option) {
+                                return [
+                                    'id' => $option->id,
+                                    'name' => $option->name,
+                                    'price' => $option->price ,
+                                    'price_discount' => $option->price_discount,  // قیمت با تخفیف (ممکنه null باشه)
+                                ];
+                            })->toArray(),
                         ];
-                    }),
+                    })->toArray(),
                 ];
-            });
+            })->values();
 
         return response()->json($foods);
     }
-
     // ذخیره سفارش تلفنی
     public function store(Request $request)
     {

@@ -82,7 +82,7 @@
                             <div class="grid grid-cols-1 md:grid-cols-3  gap-4">
                                 <!-- عنوان -->
                                 <input type="text" name="options[0][title]" placeholder="عنوان (مثلاً: کوچک)"
-                                       class="p-2 border rounded-md text-sm" required>
+                                       class="p-2 border rounded-md text-sm" >
 
                                 <!-- قیمت -->
                                 <input type="number" name="options[0][price]" placeholder="  قیمت قدیم"

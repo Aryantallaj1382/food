@@ -21,6 +21,8 @@
                 <th class="border px-4 py-2">سقف</th>
                 <th class="border px-4 py-2">اعتبار تا</th>
                 <th class="border px-4 py-2">یکبار مصرف</th>
+                <th class="border px-4 py-2">رستوران</th>
+
                 <th class="border px-4 py-2">عملیات</th>
             </tr>
             </thead>
@@ -32,6 +34,10 @@
                     <td class="border px-4 py-2">{{ $code->max_discount ?? '-' }}</td>
                     <td class="border px-4 py-2">{{ $code->valid_until?->format('Y-m-d') ?? '-' }}</td>
                     <td class="border px-4 py-2">{{ $code->one_time_use ? 'بله' : 'خیر' }}</td>
+                    <td class="border px-4 py-2">
+                        {{ $code->restaurant?->name ?? 'عمومی' }}
+                    </td>
+
                     <td class="border px-4 py-2 flex gap-2">
                         <a href="{{ route('admin.discount-codes.edit', $code->id) }}" class="px-2 py-1 bg-blue-600 text-white rounded">ویرایش</a>
                         <form action="{{ route('admin.discount-codes.destroy', $code->id) }}" method="POST" onsubmit="return confirm('آیا مطمئن هستید؟');">

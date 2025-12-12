@@ -41,7 +41,8 @@ class AdminReportRestaurantController extends Controller
 
     public function salesReport(Request $request, Restaurant $restaurant)
     {
-        $query = Order::where('restaurant_id', $restaurant->id);
+        $query = Order::where('restaurant_id', $restaurant->id)->where('status' , 'processing')
+        ->orWhere('status' , 'completed')->orWhere('status' , 'delivery');
 
         // فیلتر تاریخ
         if ($request->from_date) {
@@ -88,7 +89,8 @@ class AdminReportRestaurantController extends Controller
     }
     public function ordersCount(Request $request, $id)
     {
-        $query = \App\Models\Order::where('restaurant_id', $id);
+        $query = \App\Models\Order::where('restaurant_id', $id)->where('status' , 'processing')
+            ->orWhere('status' , 'completed')->orWhere('status' , 'delivery');;
 
         // فیلتر تاریخ — میلادی
         if ($request->from_date) {

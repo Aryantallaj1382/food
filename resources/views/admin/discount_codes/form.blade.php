@@ -38,6 +38,21 @@
             <input type="date" name="valid_until" value="{{ old('valid_until', $discountCode?->valid_until?->format('Y-m-d') ?? '') }}" class="border p-2 w-full">
             @error('valid_until')<div class="text-red-600">{{ $message }}</div>@enderror
         </div>
+        <div class="mb-4">
+            <label>انتخاب رستوران</label>
+            <select name="restaurant_id" class="border p-2 w-full">
+                <option value="">— عمومی (برای همه رستوران‌ها) —</option>
+
+                @foreach($restaurants as $restaurant)
+                    <option value="{{ $restaurant->id }}"
+                        {{ old('restaurant_id', $discountCode->restaurant_id ?? '') == $restaurant->id ? 'selected' : '' }}>
+                        {{ $restaurant->name }}
+                    </option>
+                @endforeach
+            </select>
+            @error('restaurant_id')<div class="text-red-600">{{ $message }}</div>@enderror
+        </div>
+
 
         <div class="mb-4">
             <label><input type="checkbox" name="one_time_use" value="1" {{ old('one_time_use', $discountCode?->one_time_use ?? false) ? 'checked' : '' }}> یکبار مصرف</label>

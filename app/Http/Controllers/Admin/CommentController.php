@@ -17,6 +17,19 @@ class CommentController extends Controller
 
         return view('admin.comments.index', compact('comments'));
     }
+    public function destroy($id)
+    {
+        $comment = Comment::findOrFail($id);
+
+        // اگر ریپلای دارد، حذفش کنیم
+        if ($comment->replies()->count()) {
+            $comment->replies()->delete();
+        }
+
+        $comment->delete();
+
+        return back()->with('success', 'کامنت با موفقیت حذف شد.');
+    }
 
 
 }

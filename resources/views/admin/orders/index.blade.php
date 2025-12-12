@@ -114,68 +114,83 @@
         <div class="bg-white shadow-xl rounded-2xl border overflow-hidden">
             @if($orders->count() > 0)
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
+                    <table class="min-w-[900px] w-full divide-y divide-gray-200">
                         <thead class="bg-gradient-to-r from-orange-700 to-orange-500 text-white">
                         <tr class="text-center">
                             <th class="py-4 px-3 text-xs font-bold">#</th>
+                            <th class="py-4 px-3 text-xs font-bold">شماره سفارش</th>
+                            <th class="py-4 px-3 text-xs font-bold">تاریخ</th>
+                            <th class="py-4 px-3 text-xs font-bold">زمان تحویل</th>
                             <th class="py-4 px-3 text-xs font-bold">رستوران</th>
                             <th class="py-4 px-3 text-xs font-bold">کاربر</th>
                             <th class="py-4 px-3 text-xs font-bold">موبایل</th>
                             <th class="py-4 px-3 text-xs font-bold">مبلغ</th>
                             <th class="py-4 px-3 text-xs font-bold">پرداخت</th>
-                            <th class="py-4 px-3 text-xs font-bold">تاریخ</th>
                             <th class="py-4 px-3 text-xs font-bold">وضعیت</th>
                             <th class="py-4 px-3 text-xs font-bold">توضیحات مدیر</th>
                             <th class="py-4 px-3 text-xs font-bold">عملیات</th>
                         </tr>
-
                         </thead>
                         <tbody class="divide-y divide-gray-100">
                         @foreach($orders as $key => $order)
-                            <tr class="transition text-center text-sm {{ $order->restaurant_accept ? 'bg-emerald-100/50 border-l-4 border-emerald-500 font-medium' : 'hover:bg-orange-50' }}">                                <td class="py-4 px-3 font-medium">{{ $orders->firstItem() + $key }}</td>
-                                <td class="py-4 px-3">{{ $order->restaurant->name ?? '—' }}</td>
-                                <td class="py-4 px-3">{{ $order->user->name ?? '—' }}</td>
-                                <td class="py-4 px-3">{{ $order->user->mobile ?? '—' }}</td>
-                                <td class="py-4 px-3 font-bold text-green-600">{{ number_format($order->total_price) }} ₺</td>
-                                <td class="py-4 px-3">
-                                    <span class="{{ $order->payment_method === 'cash' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800' }} px-3 py-1 rounded-full text-xs font-medium">
-                                        {{ $order->payment_method === 'cash' ? 'نقدی' : 'آنلاین' }}
-                                    </span>
+                            <tr class="transition text-center text-sm {{ $order->restaurant_accept ? 'bg-emerald-100/50 border-l-4 border-emerald-500 font-medium' : 'hover:bg-orange-50' }}">
+                                <td class="py-4 px-3 font-medium whitespace-nowrap">{{ $orders->firstItem() + $key }}</td>
+                                <td class="py-4 px-3 whitespace-nowrap">{{ $order->id }}</td>
+                                <td class="py-4 px-3 text-xs whitespace-nowrap">{{ Jalalian::fromDateTime($order->created_at)->format('Y/m/d H:i') }}</td>
+                                <td class="py-4 px-3 whitespace-nowrap">{{ $order->time=='now' ? 'اکنون' : $order->time }}</td>
+                                <td class="py-4 px-3 whitespace-nowrap">{{ $order->restaurant->name ?? '—' }}</td>
+                                <td class="py-4 px-3 whitespace-nowrap">
+                                    @if($order->user)
+                                        <div class="flex items-center gap-2 justify-center whitespace-nowrap">
+                                            @if($order->user->is_blocked)
+                                                <span class="line-through text-gray-500">{{ $order->user->name }}</span>
+                                                <span class="inline-flex items-center gap-1 bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-xs font-bold">
+                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
+                                                </svg>
+                                                بلاک شده
+                                            </span>
+                                            @else
+                                                <span class="text-gray-800 font-medium">{{ $order->user->name }}</span>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span class="text-gray-400 italic">کاربر حذف شده</span>
+                                    @endif
                                 </td>
-                                <td class="py-4 px-3 text-xs">
-                                    {{ Jalalian::fromDateTime($order->created_at)->format('Y/m/d H:i') }}
-                                </td>
-                                <td class="py-4 px-3">
-                                    <span class="px-3 py-1 rounded-full text-xs font-bold
-                                        {{ $order->status === 'completed' ? 'bg-emerald-100 text-emerald-800' :
-                                           ($order->status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                                           ($order->status === 'processing' ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800')) }}">
-                                        {{ $order->status_fa }}
-                                    </span>
-                                </td>
+                                <td class="py-4 px-3 whitespace-nowrap">{{ $order->user->mobile ?? '—' }}</td>
+                                <td class="py-4 px-3 font-bold text-green-600 whitespace-nowrap">{{ number_format($order->total_price) }} تومان</td>
+                                <td class="py-4 px-3 whitespace-nowrap">
+                                <span class="{{ $order->payment_method === 'cash' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800' }} px-3 py-1 rounded-full text-xs font-medium">
+                                    {{ $order->payment_method === 'cash' ? 'پرداخت در محل' : 'آنلاین' }}
+                                </span>
 
-                                <td class="py-4 px-3 text-xs">
-                                    <span class="text-gray-600">
-                                        {{ \Illuminate\Support\Str::limit($order->admin_note, 30, '...') }}
-                                    </span>
                                 </td>
-                                <td class="py-4 px-3 space-x-2">
-                                    <!-- دکمه مدال -->
+                                <td class="py-4 px-3 whitespace-nowrap">
+                                <span class="px-3 py-1 rounded-full text-xs font-bold
+                                    {{ $order->status === 'completed' ? 'bg-emerald-100 text-emerald-800' :
+                                       ($order->status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                                       ($order->status === 'processing' ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800')) }}">
+                                    {{ $order->status_fa }}
+                                </span>
+                                </td>
+                                <td class="py-4 px-3 text-xs">
+                                    <span class="text-gray-600">{{ \Illuminate\Support\Str::limit($order->admin_note, 30, '...') }}</span>
+                                </td>
+                                <td class="py-4 px-3 space-x-2 whitespace-nowrap">
                                     <button onclick="openAdminNoteModal({{ $order->id }}, '{{ addslashes($order->admin_note ?? '') }}')"
                                             class="px-3 py-1.5 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700 transition">
                                         ویرایش توضیحات
                                     </button>
-                                    <div class="inline-block relative">
+                                    <div class="inline-block relative group">
                                         <button class="px-3 py-1.5 bg-gray-200 text-gray-800 text-xs rounded-lg hover:bg-gray-300 transition">
                                             تغییر وضعیت
                                         </button>
-                                        <ul class="absolute hidden bg-white shadow-lg rounded-lg w-40 mt-1 text-sm z-50">
-                                            <li class="px-4 py-2 hover:bg-blue-100 cursor-pointer" onclick="changeOrderStatus({{ $order->id }}, 'processing')">در حال آماده‌سازی</li>
+                                        <ul class="absolute hidden group-hover:block bg-white shadow-lg rounded-lg w-40 mt-1 text-sm z-50">
                                             <li class="px-4 py-2 hover:bg-emerald-100 cursor-pointer" onclick="changeOrderStatus({{ $order->id }}, 'completed')">در انتظار پیک</li>
                                             <li class="px-4 py-2 hover:bg-red-100 cursor-pointer" onclick="changeOrderStatus({{ $order->id }}, 'delivery')">تحویل پیک</li>
                                         </ul>
                                     </div>
-
                                     <a href="{{ route('admin.restaurants.items', $order->id) }}"
                                        class="px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition inline-block">
                                         جزئیات

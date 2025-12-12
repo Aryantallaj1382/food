@@ -81,7 +81,13 @@ class WalletController extends Controller
             'status' => 'paid',
         ]);
         $user = $order->user;
-        $user->wallet->balance = $user->wallet->balance + $order->amount;
+
+        $wallet = $user->wallet()->firstOrCreate(
+            [],
+            ['balance' => 0]
+        );
+        $wallet->balance += $order->amount;
+        $wallet->save();
 
 
         return $this->successResponse($order, 'پرداخت با موفقیت انجام شد.');

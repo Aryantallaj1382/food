@@ -54,28 +54,27 @@
                         </td>
 
                         <td class="px-6 py-4">
-                            @if($feedback->answer)
-                                <div class="text-sm text-gray-700 bg-green-100 p-3 rounded-lg">
-                                    {{ $feedback->answer }}
-                                </div>
-                            @else
-                                <form action="{{ route('admin.feedback.update', $feedback) }}" method="POST" class="max-w-xs">
-                                    @csrf
-                                    @method('PUT')
-                                    <textarea
-                                        name="answer"
-                                        rows="3"
-                                        class="w-full text-xs border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500 resize-none"
-                                        placeholder="پاسخ خود را اینجا بنویسید..."
-                                        required></textarea>
+                            <form action="{{ route('admin.feedback.update', $feedback) }}" method="POST" class="max-w-xs">
+                                @csrf
+                                @method('PUT')
+
+                                <textarea
+                                    name="answer"
+                                    rows="3"
+                                    class="w-full text-xs border rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500 resize-none {{ $feedback->answer ? 'border-green-300 bg-green-50' : 'border-gray-300' }}"
+                                    placeholder="پاسخ خود را اینجا بنویسید..."
+                                    required>{{ old('answer', $feedback->answer) }}</textarea>
+
+                                <div class="mt-2 flex gap-2">
                                     <button type="submit"
-                                            class="mt-2 w-full bg-indigo-600 text-white text-xs py-2 rounded hover:bg-indigo-700 transition">
-                                        ارسال پاسخ
+                                            class="flex-1 bg-indigo-600 text-white text-xs py-2 rounded hover:bg-indigo-700 transition">
+                                        {{ $feedback->answer ? 'به‌روزرسانی پاسخ' : 'ارسال پاسخ' }}
                                     </button>
-                                </form>
-                            @endif
-                        </td>
-                    </tr>
+
+
+                                </div>
+                            </form>
+                        </td>                    </tr>
                 @empty
                     <tr>
                         <td colspan="6" class="text-center py-12 text-gray-500 text-lg">

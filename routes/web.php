@@ -51,7 +51,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         route::get('/restaurant/{id}','restaurant')->name('restaurant');
         Route::get('/restaurant/{restaurant_id}/food/create',  'create')->name('create');
         Route::post('/restaurant/{restaurant_id}/food', 'store')->name('store');
-        Route::get('/restaurant`/food/{id}/edit',  'edit')->name('edit');
+        Route::get('/restaurant/food/{id}/edit',  'edit')->name('edit');
         Route::put('/restaurant/{restaurant_id}/food/{id}',  'update')->name('update');
         Route::delete('/restaurant/food/{id}',  'destroy')->name('destroy');
         // ... سایر روت‌ها
@@ -60,8 +60,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
         route::get('/','index')->name('index');
         route::delete('/{id}','destroy')->name('delete');
         route::get('/show/{id}','show')->name('show');
+        route::post('/users/wallet/{user}','update')->name('update');
         Route::get('/users/create', 'create')->name('create');
         Route::post('/users', 'store')->name('store');
+
+        Route::get('/users/{id}/edit', 'edit_user')->name('edit_user');
+        Route::put('/users/{id}', 'update_user')->name('update_user');
+
     });
 
 
@@ -80,6 +85,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
 
     Route::get('/comments', [CommentController::class, 'index'])->name('comments.index');
+    Route::delete('/comments/{id}', [CommentController::class, 'destroy'])->name('comments.destroy');
 
     Route::prefix('sliders')->name('sliders.')->controller(\App\Http\Controllers\Admin\SliderController::class)->group(function () {
         Route::get('/', 'index')->name('index');
@@ -116,12 +122,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('/admin/restaurants/toggle-all', [AdminReportRestaurantController::class, 'toggleAll'])
         ->name('restaurants.toggleAll');
 // routes/web.php یا admin.php
-    Route::get('/foods/inactivate', [AdminFoodController::class, 'inactiveFoods'])->name('foods.activate');
     // routes/web.php یا admin.php
-    Route::patch('foods/{food}/activate-all-options', [AdminFoodController::class, 'activateAllOptions'])
-        ->name('foods.activate-all-options');
-    Route::patch('/food-options/{option}/toggle', [AdminFoodController::class, 'toggle'])
-        ->name('admin.food-options.toggle');
+    Route::post('/foods/{food}/toggle', [AdminFoodController::class, 'toggle1'])->name('foods.toggle');
+    Route::post('/foods/{food}/activateAllOptions', [AdminFoodController::class, 'activateAllOptions'])->name('foods.activateAllOptions');
+
+    Route::patch('/foods11/activate-all-options/{food}', [AdminFoodController::class, 'activateAllOptions'])->name('foods.activate-all-options');
+    Route::patch('/food-options/{option}/toggle', [AdminFoodController::class, 'toggle'])->name('admin.food-options.toggle');
+    Route::get('/foods/inactivate', [AdminFoodController::class, 'inactiveFoods'])->name('foods.activate');
     // routes/web.php
     Route::patch('/orders/{order}/admin-note', [ordersController::class, 'updateAdminNote'])
         ->name('orders.update-admin-note');

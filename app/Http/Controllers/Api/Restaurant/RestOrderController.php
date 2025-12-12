@@ -67,7 +67,13 @@ class RestOrderController extends Controller
             })
             ->latest()
             ->paginate(15);
-
+        $order = Order::whereRelation('user' , 'id' , $user->id)->where('payment_status' , 'paid')->orWhere('payment_status' , 'cash')
+            ->whereDate('created_at', Carbon::today())
+            ->where('status','!=','delivery')->
+            where('status','!=','completed')->
+            where('status','!=','rejected   ')->
+            whereNotNull('time')->where('time','!=','now')->latest()->get();
+            $a = $order->isEmpty() ? 0 : 1;
         $orders->getCollection()->transform(function($order){
             return [
                 'id' => $order->id,
@@ -77,13 +83,13 @@ class RestOrderController extends Controller
                 'total_amount' => (int)$order->total_amount,
                 'sending_method' => $order->sending_method,
                 'status' => $order->status,
-
                 'time' => $order->time,
                 'get_ready_time' => $order->created_at && Carbon::parse($order->created_at)->isToday()
                     ? ($order->get_ready_time ?? $order->time)
-                    : 'now',            ];
+                    : 'now',
+                ];
         });
-        return api_response($orders, 'داده ها با موفقیت ارسال شدند');
+        return api_response($orders, 'داده ها با موفقیت ارسال شدند',200,[  'order' =>$a] );
     }
 
     public function show_order($id){

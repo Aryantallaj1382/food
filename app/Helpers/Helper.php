@@ -175,8 +175,8 @@ function distanceKm($lat1, $lon1, $lat2, $lon2)
         sin($lonDelta / 2) * sin($lonDelta / 2);
 
     $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-
-    return $earthRadius * $c;
+    $x = $earthRadius * $c;
+    return (int) $x;
 }
 function sms($pattern , $mobile , $data )
 {

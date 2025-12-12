@@ -31,28 +31,29 @@ class Restaurant extends Model
     }
     public function getIsOpenAttribute(): bool
     {
-        $status = SystemSetting::where('kay', 'system_status')->value('value');
-        if ($status == 0) {
-            return false;
-        }
-
-        $now = Carbon::now('Asia/Tehran')->format('H:i');
-
-        $morningStart = $this->morning_start;
-        $morningEnd   = $this->morning_end;
-        $eveningStart = $this->afternoon_start;
-        $eveningEnd   = $this->afternoon_end;
-
-        $inMorning = $morningStart && $morningEnd &&
-            ($now >= $morningStart && $now <= $morningEnd);
-
-        $inEvening = $eveningStart && $eveningEnd &&
-            ($now >= $eveningStart && $now <= $eveningEnd);
-
-        if (!$inMorning && !$inEvening) {
-            return false;
-        }
-        return (bool) $this->attributes['is_open'];
+//        $status = SystemSetting::where('kay', 'system_status')->value('value');
+//        if ($status == 0) {
+//            return false;
+//        }
+//
+//        $now = Carbon::now('Asia/Tehran')->format('H:i');
+//
+//        $morningStart = $this->morning_start;
+//        $morningEnd   = $this->morning_end;
+//        $eveningStart = $this->afternoon_start;
+//        $eveningEnd   = $this->afternoon_end;
+//
+//        $inMorning = $morningStart && $morningEnd &&
+//            ($now >= $morningStart && $now <= $morningEnd);
+//
+//        $inEvening = $eveningStart && $eveningEnd &&
+//            ($now >= $eveningStart && $now <= $eveningEnd);
+//
+//        if (!$inMorning && !$inEvening) {
+//            return false;
+//        }
+//        return (bool) $this->attributes['is_open'];
+        return true;
     }
 
 
@@ -90,6 +91,10 @@ class Restaurant extends Model
     {
         return $value ? url('public/'.$value) : null;
     }
+    public function getBgAttribute($value)
+    {
+        return $value ? url('public/'.$value) : null;
+    }
     protected $appends = ['category_names', 'rate' , 'rate_count'];
     protected function categoryNames(): Attribute
     {
@@ -99,15 +104,25 @@ class Restaurant extends Model
     }
     protected function getRateAttribute()
     {
-        return Comment::whereHas('order', function ($query) {
+        return round(
+        Comment::whereHas('order', function ($query) {
             $query->where('restaurant_id', $this->id);
-        })->avg('rating');
+        })->avg('rating'),
+        1
+    );
+
     }
     protected function getRateCountAttribute()
     {
-        return Comment::whereHas('order', function ($query) {
-            $query->where('restaurant_id', $this->id);
-        })->count();
+        {
+            return round(
+                Comment::whereHas('order', function ($query) {
+                    $query->where('restaurant_id', $this->id);
+                })->avg('rating'),
+                1
+            );
+
+        }
     }
 
 

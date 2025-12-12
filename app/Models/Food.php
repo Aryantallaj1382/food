@@ -19,11 +19,13 @@ class Food extends Model
         'food_categories_id',
         'description',
         'is_available',
+        'about_category'
     ];
     protected $hidden = [
         'created_at',
         'updated_at',
     ];
+
     protected $appends = ['restaurant_name'];
 
     public function getRestaurantNameAttribute()

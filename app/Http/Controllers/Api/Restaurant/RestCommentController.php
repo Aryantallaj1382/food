@@ -61,11 +61,12 @@ class RestCommentController extends Controller
     }
     public function reply(Request $request, $id)
     {
-        if (empty($request->text)){
-            return api_response([],'متن پاسخ نباید خالی باشد',422);
-        }
-        $parentComment = Comment::findOrFail($id);
 
+        $parentComment = Comment::findOrFail($id);
+        if (empty($request->text)){
+            $parentComment->replies()->delete();
+            return api_response([],'پاسخ حذف شد');
+        }
         $text = $request->input('text', '');
 
         $existingReply = Comment::where('parent_comment_id', $parentComment->id)

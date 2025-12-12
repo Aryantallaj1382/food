@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\discount;
 
 use App\Http\Controllers\Controller;
 use App\Models\DiscountCode;
+use App\Models\Restaurant;
 use Illuminate\Http\Request;
 class AdminDiscountCodeController extends Controller
 {
@@ -15,7 +16,8 @@ class AdminDiscountCodeController extends Controller
 
     public function create()
     {
-        return view('admin.discount_codes.create');
+        $restaurants = Restaurant::all();
+        return view('admin.discount_codes.create',compact('restaurants'));
     }
 
     public function store(Request $request)
@@ -36,13 +38,15 @@ class AdminDiscountCodeController extends Controller
 
     public function edit(DiscountCode $discountCode)
     {
-        return view('admin.discount_codes.edit', compact('discountCode'));
+        $restaurants = Restaurant::all();
+
+        return view('admin.discount_codes.edit', compact(['discountCode' , 'restaurants']));
     }
 
     public function update(Request $request, DiscountCode $discountCode)
     {
         $data = $request->validate([
-            'name' => 'required|string|max:255|unique:discount_codes,name',
+            'name' => 'required|string|max:255',
             'percentage' => 'required|numeric|min:0|max:100',
             'max_discount' => 'nullable|numeric|min:0',
             'valid_until' => 'nullable|date',

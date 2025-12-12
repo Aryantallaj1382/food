@@ -20,6 +20,8 @@
                     <th class="p-3">امتیاز</th>
                     <th class="p-3">متن کامنت</th>
                     <th class="p-3">تاریخ ثبت</th>
+                    <th class="p-3">عملیات</th>
+
                 </tr>
                 </thead>
                 <tbody>
@@ -39,37 +41,76 @@
                                 ⭐ {{ $comment->rating }}
                             </span>
                         </td>
-                        <td class="p-3 text-gray-700 max-w-xs truncate" title="{{ $comment->text }}">
-                            {{ \Illuminate\Support\Str::limit($comment->text, 60) }}
+                        <td class="p-3">
+                            <div class="space-y-4">
 
-                            @if ($comment->replies->count() > 0)
-                                <span
-                                    class="text-blue-600 cursor-pointer hover:underline ml-2 reply-toggle"
-                                    data-id="replies-{{ $comment->id }}"
-                                >
-                                مشاهده ریپلای
-                            </span>
+                                <!-- کامنت کاربر -->
+                                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                    <p class="text-sm text-gray-800 leading-relaxed">
+                                        {{ \Illuminate\Support\Str::limit($comment->text, 120) }}
+                                    </p>
+                                    <div class="flex items-center justify-between mt-3 text-xs text-gray-500">
+                <span class="font-medium">
+                    {{ $comment->user->name ?? 'کاربر مهمان' }}
+                </span>
+                                        <span>
+                    {{ Jalalian::forge($comment->created_at)->format('Y/m/d H:i') }}
+                </span>
+                                    </div>
+                                </div>
 
-                                <div id="replies-{{ $comment->id }}"
-                                     class="hidden mt-2 bg-gray-50 border rounded-lg p-3 text-right shadow-md">
-                                    @foreach ($comment->replies as $reply)
-                                        <div class="border-b border-gray-200 py-2">
-                                            <p class="text-sm text-gray-800">
-                                                <strong>{{ $reply->user->name ?? '---' }}:</strong>
-                                                {{ $reply->text }}
-                                            </p>
-                                            <span class="text-xs text-gray-500">
-                        {{ Jalalian::forge($reply->created_at)->format('Y/m/d') }}
-                    </span>
+                                <!-- پاسخ رستوران (اگر وجود داشت) — بدون دکمه، فقط نمایش -->
+                                @if($comment->replies->isNotEmpty())
+                                    @foreach($comment->replies as $reply)
+                                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mr-8 relative">
+                                            <!-- فلش کوچک سمت چپ برای حس چت -->
+                                            <div class="absolute -left-2 top-5 w-0 h-0
+                                border-t-8 border-b-8 border-r-8
+                                border-transparent border-r-blue-200">
+                                            </div>
+
+                                            <div class="flex items-start gap-3">
+                                                <svg class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                                </svg>
+                                                <div class="flex-1">
+                                                    <p class="text-xs font-bold text-blue-800 mb-1">پاسخ رستوران:</p>
+                                                    <p class="text-sm text-gray-800 leading-relaxed">
+                                                        {{ $reply->text }}
+                                                    </p>
+                                                    <p class="text-xs text-gray-500 mt-2">
+                                                        {{ $reply->user?->name ?? 'مدیر' }}
+                                                        <span class="mx-2">•</span>
+                                                        {{ Jalalian::forge($reply->created_at)->ago() }}
+                                                    </p>
+                                                </div>
+                                            </div>
                                         </div>
                                     @endforeach
-                                </div>
-                            @endif
-                        </td>
+                                @endif
 
+                            </div>
+                        </td>
                         <td class="p-3 text-gray-600">
                             {{ Jalalian::forge($comment->created_at)->format('Y/m/d') }}
                         </td>
+                        <td class="p-3 flex justify-center gap-2">
+
+                            {{-- حذف کامنت --}}
+                            <form action="{{ route('admin.comments.destroy', $comment->id) }}"
+                                  method="POST"
+                                  onsubmit="return confirm('آیا از حذف این کامنت مطمئن هستید؟');">
+
+                                @csrf
+                                @method('DELETE')
+
+                                <button class="bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-700 transition">
+                                    حذف
+                                </button>
+                            </form>
+
+                        </td>
+
                     </tr>
                 @empty
                     <tr>

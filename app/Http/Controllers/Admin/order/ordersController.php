@@ -34,7 +34,7 @@ class ordersController extends Controller
             ->when($payment, fn($query) => $query->where('payment_status', $payment))
             ->when($date, fn($query) => $query->whereDate('created_at', $date)) // تاریخ میلادی
             ->orderBy('created_at', 'desc')
-            ->paginate(15)
+            ->paginate(50)
             ->withQueryString();
 
         return view('admin.orders.index', compact('orders'));

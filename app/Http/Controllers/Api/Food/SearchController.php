@@ -27,8 +27,9 @@ class SearchController extends Controller
             ->when($slug, function ($query, $slug) {
                 $query->whereHas('categories', function ($q) use ($slug) {
                     $q->whereIn('categories.id', $slug);
-                });
+                }, '=', count($slug));
             })
+
 
             ->when($taem, function ($query) {
                 $query->whereNotNull('discount');
@@ -37,24 +38,15 @@ class SearchController extends Controller
             ->take(10)
             ->get();
 
+
         // -------------------- FOODS --------------------
-        if (!empty($slug) || !empty($taem)) {
-            $foods = collect([]);
-        } elseif (empty($search) && empty($khosh)) {
-            $foods = collect([]);
-        } else {
+        $foods = collect([]);
+        if (!empty($search) )  {
             $foods = Food::with('restaurant.categories')
                 ->select('foods.*')
                 ->when($search, function ($query, $search) {
                     $query->where('foods.name', 'LIKE', "%{$search}%");
                 })
-
-                ->when($khosh, function ($query) {
-                    $query->whereHas('options', function ($q) {
-                        $q->whereColumn('price_discount', '<=', 'price');
-                    });
-                })
-
                 ->take(10)
                 ->get();
         }
@@ -64,8 +56,8 @@ class SearchController extends Controller
             return [
                 'name' => $item->name,
                 'description' => $item->description,
-                'rate' => 3,
-                'rate_count' => 50,
+                'rate' => $item->restaurant->rate,
+                'rate_count' => $item->restaurant->rate,
                 'pay_type' => $item->restaurant->pay_type,
                 'restaurant_id' => $item->restaurant->id,
                 'id' => $item->id,

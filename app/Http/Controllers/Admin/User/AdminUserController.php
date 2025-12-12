@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\User;
 use App\Http\Controllers\Controller;
 use App\Models\Address;
 use App\Models\Order;
+use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -55,10 +56,43 @@ class AdminUserController extends Controller
     public function show($id)
     {
         $user = User::findOrFail($id);
-        $orders = Order::where('user_id', $id)->paginate(10);
+        $orders = Order::where('user_id', $id)->where('payment_status', 'paid')->orWhere('payment_status', 'cash')->paginate(10);
         $address = Address::where('user_id', $id)->get();
         return view('admin.users.show', compact(['user', 'orders', 'address']));
     }
+
+
+
+
+    public function update(Request $request, User $user)
+    {
+        $data = $request->validate([
+            'operation_type' => 'required|in:deposit,withdraw',
+            'amount' => 'required|numeric|min:1',
+        ]);
+
+        $wallet = $user->wallet;
+
+        if (!$wallet) {
+            $wallet = $user->wallet()->create(['balance' => 0]);
+        }
+
+        if ($data['operation_type'] === 'deposit') {
+            $wallet->balance += $data['amount'];
+        } else {
+            if ($wallet->balance < $data['amount']) {
+                return back()->with('error', 'موجودی کافی نیست.');
+            }
+            $wallet->balance -= $data['amount'];
+        }
+        $wallet->save();
+
+
+
+        return back()->with('success', 'تراکنش با موفقیت ثبت شد.');
+    }
+
+
     public function destroy($id)
     {
         $user = User::findOrFail($id);
@@ -110,5 +144,36 @@ class AdminUserController extends Controller
         ]);
         return response()->json(['success'=>true]);
     }
+    public function edit_user($id)
+    {
+        $user = User::findOrFail($id);
+        return view('admin.users.edit', compact('user'));
+    }
+    public function update_user(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        $request->validate([
+            'first_name' => 'required|string|max:100',
+            'last_name'  => 'required|string|max:100',
+            'mobile'     => 'required|digits:11|unique:users,mobile,' . $user->id,
+            'phone'      => 'nullable|string|max:20',
+            'password'   => 'nullable|confirmed',
+        ]);
+
+        $user->first_name = $request->first_name;
+        $user->last_name  = $request->last_name;
+        $user->mobile     = $request->mobile;
+        $user->phone      = $request->phone;
+
+        if ($request->password) {
+            $user->password = bcrypt($request->password);
+        }
+
+        $user->save();
+
+        return redirect()->route('admin.users.index')->with('success', 'کاربر با موفقیت ویرایش شد');
+    }
+
 
 }

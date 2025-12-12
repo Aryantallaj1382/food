@@ -8,15 +8,14 @@
 
         <!-- 💰 خلاصه حساب -->
         <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-            <div class="bg-green-100 text-green-700 px-4 py-2 rounded-lg font-semibold">
-                بستانکار: {{ number_format($credit_sum) }} تومان
+
+            <div class="bg-indigo-100 text-indigo-700 px-4 py-2 rounded-lg font-semibold flex items-center gap-3">
+                <span>مانده: {{ number_format(abs($balance)) }} تومان</span>
+                <span class="{{ $statusColor }}">
+        ({{ $statusText }})
+    </span>
             </div>
-            <div class="bg-red-100 text-red-700 px-4 py-2 rounded-lg font-semibold">
-                بدهکار: {{ number_format($debit_sum) }} تومان
-            </div>
-            <div class="bg-indigo-100 text-indigo-700 px-4 py-2 rounded-lg font-semibold">
-                مانده: {{ number_format($balance) }} تومان
-            </div>
+
         </div>
 
         <!-- 🔍 فرم فیلتر تراکنش‌ها -->
@@ -24,18 +23,11 @@
             <div class="flex items-center gap-2 w-full md:w-1/3">
                 <select name="type" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none">
                     <option value="">همه نوع‌ها</option>
-                    <option value="credit" @selected(($filters['type'] ?? '') === 'credit')>بستانکار</option>
-                    <option value="debit" @selected(($filters['type'] ?? '') === 'debit')>بدهکار</option>
+                    <option value="debit" @selected(($filters['type'] ?? '') === 'debit')>بستانکار</option>
+                    <option value="credit" @selected(($filters['type'] ?? '') === 'credit')>بدهکار</option>
                 </select>
             </div>
-            <div class="flex items-center gap-2 w-full md:w-1/3">
-                <select name="status" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none">
-                    <option value="">همه وضعیت‌ها</option>
-                    <option value="success" @selected(($filters['status'] ?? '') === 'success')>موفق</option>
-                    <option value="pending" @selected(($filters['status'] ?? '') === 'pending')>در انتظار</option>
-                    <option value="failed" @selected(($filters['status'] ?? '') === 'failed')>ناموفق</option>
-                </select>
-            </div>
+
             <div class="flex gap-3 w-full md:w-auto justify-center">
                 <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
                     اعمال فیلتر
@@ -53,7 +45,6 @@
                 <tr>
                     <th class="py-3 px-4 font-semibold">#</th>
                     <th class="py-3 px-4 font-semibold">نوع تراکنش</th>
-                    <th class="py-3 px-4 font-semibold">وضعیت</th>
                     <th class="py-3 px-4 font-semibold">مبلغ (تومان)</th>
                     <th class="py-3 px-4 font-semibold">توضیحات</th>
                     <th class="py-3 px-4 font-semibold">کد تراکنش</th>
@@ -64,18 +55,10 @@
                 @forelse ($transactions as $index => $transaction)
                     <tr class="hover:bg-indigo-50 transition">
                         <td class="py-3 px-4 font-medium text-gray-900">{{ $index + $transactions->firstItem() }}</td>
-                        <td class="py-3 px-4 font-semibold {{ $transaction->type === 'credit' ? 'text-green-600' : 'text-red-600' }}">
-                            {{ $transaction->type === 'credit' ? 'بستانکار' : 'بدهکار' }}
+                        <td class="py-3 px-4 font-semibold {{ $transaction->type === 'debit' ? 'text-green-600' : 'text-red-600' }}">
+                            {{ $transaction->type === 'debit' ? 'بستانکار' : 'بدهکار' }}
                         </td>
-                        <td class="py-3 px-4">
-                            @if($transaction->status === 'success')
-                                <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">موفق</span>
-                            @elseif($transaction->status === 'pending')
-                                <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-semibold">در انتظار</span>
-                            @else
-                                <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-semibold">ناموفق</span>
-                            @endif
-                        </td>
+
                         <td class="py-3 px-4">{{ number_format($transaction->amount) }}</td>
                         <td class="py-3 px-4">{{$transaction->description }}</td>
                         <td class="py-3 px-4">{{$transaction->tracking_code }}</td>

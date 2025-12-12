@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Auth\SendOtpController;
 use App\Http\Controllers\Api\Food\RestaurantController;
 use App\Http\Controllers\Api\Order\FinalOrderController;
+use App\Http\Controllers\Api\Profile\PayAgainController;
 use App\Http\Controllers\Api\Profile\UserOrderController;
 use App\Http\Controllers\Api\Restaurant\ProductsMenuController;
 use App\Http\Controllers\Api\Restaurant\RestCommentController;
@@ -68,6 +69,7 @@ Route::prefix('restaurant')->controller(RestaurantController::class)->group(func
 });
 Route::prefix('order')->controller(FinalOrderController::class)->group(function () {
     Route::post('/send_price', 'send_price');
+    Route::post('/store/again', [PayAgainController::class, 'index']);
     Route::post('/callback', 'callback');
     Route::post('/check_discount', 'check_discount')->middleware('auth:sanctum');
     Route::post('/store', 'store')->middleware('auth:sanctum');

@@ -19,6 +19,7 @@ class ProfileController extends Controller
         $addresses = $user->addresses->where('is_main', true)->first();
         $order = Order::where('user_id', $user->id)
             ->where('status', 'processing')
+            ->Orwhere('status', 'pending')
             ->where('is_received', false)
             ->whereDate('created_at', Carbon::today()) // فقط امروز
             ->get();

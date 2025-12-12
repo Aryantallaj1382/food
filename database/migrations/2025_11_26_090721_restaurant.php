@@ -11,15 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-//        Schema::table('restaurants', function (Blueprint $table) {
-//
-//            $table->string('description')->nullable();
-//            $table->string('bg')->nullable();
-//            $table->string('grt_ready_maximum')->after('grt_ready_minute')->nullable();
-//            $table->string('free_shipping_minimum')->after('free_shipping')->nullable();
-//            $table->string('fee')->nullable();
-//            $table->string('team_text')->nullable();
-//        });
+        Schema::table('restaurants', function (Blueprint $table) {
+
+            $table->string('description')->nullable();
+            $table->string('bg')->nullable();
+            $table->string('mobile')->nullable();
+            $table->string('phone')->nullable();
+            $table->string('grt_ready_maximum')->after('grt_ready_minute')->nullable();
+            $table->string('free_shipping_minimum')->after('free_shipping')->nullable();
+            $table->string('fee')->nullable();
+            $table->string('team_text')->nullable();
+        });
+
     }
 
     /**

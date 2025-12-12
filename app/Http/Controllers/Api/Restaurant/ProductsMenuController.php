@@ -62,6 +62,7 @@ class ProductsMenuController extends controller
                 return  [
                     'id' => $food->id,
                     'name' => $food->name,
+                    'panel_editable' => $food->restaurant->panel_editable,
                     'category' => ['name'=> $food->category?->name],
                     'is_available' => $food->is_available,
                     'description' => $food->description,
@@ -101,6 +102,8 @@ class ProductsMenuController extends controller
             'name' => $food->name,
             'category' => $food->category?->name,
             'is_available' => $food->is_available,
+            'panel_editable' => $food->restaurant->panel_editable,
+
             'description' => $food->description,
             'options' => $food->options->map(function ($option) {
                 return [
@@ -307,10 +310,20 @@ class ProductsMenuController extends controller
             'description' => 'nullable|string',
             'options' => 'array|nullable',
             'options.*.id' => 'nullable|exists:food_options,id',
+
             'options.*.name' => 'nullable|string',
             'options.*.price' => 'nullable|numeric',
-            'options.*.price_discount' => 'nullable|numeric',
-            'options.*.discount_percentage' => 'nullable|numeric',
+            'options.*.price_discount' => [
+                'nullable',
+                'numeric',
+                function ($attribute, $value, $fail) {
+                    // اگر مقدار ارسال شده بود و صفر یا "0" بود → خطا
+                    if ($value !== null && (float)$value == 0) {
+                        $index = explode('.', $attribute)[1]; // مثلاً options.2.price_discount → می‌گیره 2
+                        $fail("قیمت  نمی‌تواند صفر باشد.");
+                    }
+                },
+            ],            'options.*.discount_percentage' => 'nullable|numeric',
             'options.*.is_available' => 'nullable|boolean',
         ]);
         if (!$request->name) {

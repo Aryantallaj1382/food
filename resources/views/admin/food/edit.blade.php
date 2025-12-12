@@ -60,6 +60,12 @@
                             @endforeach
                         </select>
                     </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">توضیحات دسته بندی</label>
+                        <input type="text" name="about_category" value="{{ old('about_category', $food->about_category) }}"
+                               class="w-full p-3 border rounded-lg @error('about_category') border-red-500 @enderror">
+                        @error('about_category') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
+                    </div>
                 </div>
 
                 <div class="mb-8">
@@ -84,7 +90,7 @@
                                     <input type="hidden" name="options[{{ $index }}][id]" value="{{ $option->id }}">
 
                                     <input type="text" name="options[{{ $index }}][title]" value="{{ old("options.$index.title", $option->name) }}"
-                                           class="p-2 border rounded-md text-sm" placeholder="عنوان" required>
+                                           class="p-2 border rounded-md text-sm" placeholder="عنوان" >
 
                                     <input type="number" name="options[{{ $index }}][price]" value="{{ old("options.$index.price", $option->price) }}"
                                            class="p-2 border rounded-md text-sm" placeholder="قیمت" min="0" step="100" required>
@@ -101,7 +107,7 @@
                                     </div>
 
                                     <input type="number" name="options[{{ $index }}][dish_price]" value="{{ old("options.$index.dish_price", $option->dish_price) }}"
-                                           class="p-2 border rounded-md text-sm" placeholder="قیمت ظرف" min="0"">
+                                           class="p-2 border rounded-md text-sm" placeholder="قیمت ظرف" min="0">
                                 </div>
                                 <button type="button" class="remove-option text-red-600 hover:text-red-800 text-sm mt-2">حذف</button>
                             </div>
