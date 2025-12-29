@@ -37,6 +37,9 @@ class SearchController extends Controller
             ->when($taem, function ($query) {
                 $query->whereNotNull('team_text');
             })
+            ->when($khosh, function ($query) {
+                $query->whereNotNull('discount_percentage');
+            })
             ->orderByDesc('is_open')
             ->orderByDesc('discount_percentage')
             ->orderByDesc('rate')

@@ -112,7 +112,7 @@
                             {{ \Illuminate\Support\Str::limit($restaurant->address, 30, '...') }}
                         </td>
                         <td class="py-3 px-4 text-center font-semibold">
-                            {{ $restaurant?->user?->mobile ?? '---' }}
+                            {{ $restaurant ?->mobile ?? '---' }}
                         </td>
                         <td class="py-3 px-4 text-center font-semibold">
                             {{ $restaurant?->is_open ? 'باز است' : 'بسته است'}}
@@ -123,6 +123,10 @@
                             <a href="{{ route('admin.restaurants.edit', $restaurant->id) }}"
                                class="text-blue-600 hover:text-blue-800 font-bold">
                                 مشاهده
+                            </a>
+                            <a href="{{ route('admin.restaurants.service_times.edit', $restaurant->id) }}"
+                               class="text-green-800 hover:text-green-400 font-bold">
+                                ساعات
                             </a>
                         </td>
                     </tr>

@@ -16,8 +16,15 @@ class AdminFoodController extends Controller
     // فعال/غیرفعال کردن غذا
     public function toggle1(Food $food)
     {
-        $food->update(['is_available' => !$food->is_available]);
-        return back()->with('success', "وضعیت «{$food->name}» با موفقیت تغییر کرد.");
+        $newStatus = !$food->is_available;
+
+        $food->update(['is_available' => $newStatus]);
+
+        $food->options()->update(['is_available' => $newStatus]);
+
+        $statusText = $newStatus ? 'فعال' : 'غیرفعال';
+
+        return back()->with('success', "وضعیت «{$food->name}» با موفقیت به «{$statusText}» تغییر کرد.");
     }
 
 // فعال کردن همه آپشن‌ها
@@ -217,6 +224,13 @@ class AdminFoodController extends Controller
                 $submittedOptionIds[] = $newOpt->id;
             }
         }
+        $hasAvailableOption = FoodOption::where('food_id', $food->id)
+            ->where('is_available', 1)
+            ->exists();
+
+        $food->update([
+            'is_available' => $hasAvailableOption ? 1 : 0
+        ]);
 
         // حذف گزینه‌هایی که دیگر ارسال نشده‌اند
         $optionsToDelete = array_diff($existingOptionIds, $submittedOptionIds);

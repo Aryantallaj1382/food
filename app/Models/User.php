@@ -29,6 +29,7 @@ class User extends Authenticatable
         'sms_sent_tries',
         'sms_sent_code',
         'is_blocked',
+        'admin_message',
         'block_reason',
     ];
     public function restaurants()

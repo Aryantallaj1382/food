@@ -14,6 +14,7 @@ class Payment extends Model
         'gateway',
         'status',
         'notes',
+        'type',
         'transaction_id',
     ];
 
@@ -26,4 +27,20 @@ class Payment extends Model
     {
         return $this->belongsTo(User::class);
     }
+    public function getTypeFaAttribute()
+    {
+        return match ($this->type) {
+            'withdraw' => 'برداشت',
+            'deposit'     => 'وایز',
+            default    => '---',
+        };
+    }
+    public function getGatewayFaAttribute()
+    {
+        return match ($this->gateway) {
+            'pars' => 'پارسیان',
+            default    => '---',
+        };
+    }
+
 }

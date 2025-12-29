@@ -67,7 +67,7 @@ class RestOrderController extends Controller
             })
             ->latest()
             ->paginate(15);
-        $order = Order::whereRelation('user', 'id', $user->id)
+        $order = Order::whereRelation('restaurant', 'user_id', $user->id)
             ->where(function ($q) {
                 $q->where('payment_status', 'paid')
                     ->orWhere('payment_status', 'cash');

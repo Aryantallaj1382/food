@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Notification;
 use App\Models\Order;
 use App\Models\Restaurant;
+use App\Models\SystemSetting;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -17,23 +18,41 @@ class ProfileController extends Controller
     {
         $user = auth()->user();
         $addresses = $user->addresses->where('is_main', true)->first();
-        $order = Order::where('user_id', $user->id)
+        $order = Order::
+             where('user_id', $user->id)
             ->where(function ($q) {
                 $q->where('status', 'processing')
                     ->orWhere('status', 'pending');
             })
             ->where('is_received', false)
+            ->where('sending_method', 'pike')
             ->whereDate('created_at', Carbon::today())
             ->get();
-        $order_received = Order::where('user_id', $user->id)
-            ->where('is_received', true)
+        $order_received = Order::
+             where('user_id', $user->id)
+            ->where(function ($q){
+                $q->where('status' ,'processing')
+                    ->orWhere('status' ,'completed')
+                    ->orWhere('status' ,'delivery');
+            })
             ->where('no_message', false)            // فقط اگر false بود
-            ->whereDoesntHave('comment')            // و کامنت نداشت
+            ->whereDoesntHave('comment')
+            ->where('created_at', '<=', Carbon::now()->subHours(2))
             ->first();
+        $message = null;
+        if ($user->admin_message == false){
+
+            $message = SystemSetting::where('kay', 'admin_message')->value('value');
+            $user->admin_message = true;
+            $user->save();
+
+        }
+
 
 
 
         return api_response([
+            'admin_message' => $message,
             'first_name' => $user->first_name,
             'last_name' => $user->last_name,
             'mobile' => $user->mobile,
@@ -45,9 +64,7 @@ class ProfileController extends Controller
                 $time = null;
                 if ($order->time == 'now') {
                     $now = Carbon::parse($order->created_at)->timezone('Asia/Tehran');
-
                     $rest_time = (int)$order->restaurant->grt_ready_maximum;
-
                     $time = $now->copy()->addMinutes($rest_time);
                 } else {
                     $time = $order->time;
@@ -108,6 +125,9 @@ class ProfileController extends Controller
                 'text' => $message,
                 'is_seen' => 0,
             ]);
+            $order->update([
+                'is_received' => true,
+            ]);
         }
         elseif ($request->received == true) {
             $message = ' به دست کاربر رسید'.$order->id.'سافرش شماره ';
@@ -129,7 +149,7 @@ class ProfileController extends Controller
         $order->update([
             'no_message' => true,
         ]);
-        return api_response([],'با تشکر');
+        return api_response([],' با تشکر');
 
     }
 }

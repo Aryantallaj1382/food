@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\User;
 use App\Http\Controllers\Controller;
 use App\Models\Address;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -19,7 +20,7 @@ class AdminUserController extends Controller
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
-                ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
                     ->orWhere('mobile', 'like', "%{$search}%");
             });
         }
@@ -42,7 +43,7 @@ class AdminUserController extends Controller
         }
         if ($request->input('sort') === 'loyal') {
             $query->withCount('orders')
-            ->orderByDesc('orders_count');
+                ->orderByDesc('orders_count');
         } else {
             $query->latest();
         }
@@ -58,10 +59,9 @@ class AdminUserController extends Controller
         $user = User::findOrFail($id);
         $orders = Order::where('user_id', $id)->where('payment_status', 'paid')->orWhere('payment_status', 'cash')->paginate(10);
         $address = Address::where('user_id', $id)->get();
-        return view('admin.users.show', compact(['user', 'orders', 'address']));
+        $transaction = Payment::where('user_id', $id)->where('status', 'paid')->latest()->get();
+        return view('admin.users.show', compact(['user', 'orders', 'address', 'transaction']));
     }
-
-
 
 
     public function update(Request $request, User $user)
@@ -86,7 +86,6 @@ class AdminUserController extends Controller
             $wallet->balance -= $data['amount'];
         }
         $wallet->save();
-
 
 
         return back()->with('success', 'تراکنش با موفقیت ثبت شد.');
@@ -126,14 +125,15 @@ class AdminUserController extends Controller
 
         return redirect()->route('admin.users.index')->with('success', 'کاربر جدید با موفقیت ایجاد شد ✅');
     }
+
     public function block(Request $request, User $user)
     {
-        $request->validate(['reason'=>'required|string']);
+        $request->validate(['reason' => 'required|string']);
         $user->update([
             'is_blocked' => true,
             'block_reason' => $request->reason,
         ]);
-        return response()->json(['success'=>true]);
+        return response()->json(['success' => true]);
     }
 
     public function unblock(User $user)
@@ -142,29 +142,31 @@ class AdminUserController extends Controller
             'is_blocked' => false,
             'block_reason' => null,
         ]);
-        return response()->json(['success'=>true]);
+        return response()->json(['success' => true]);
     }
+
     public function edit_user($id)
     {
         $user = User::findOrFail($id);
         return view('admin.users.edit', compact('user'));
     }
+
     public function update_user(Request $request, $id)
     {
         $user = User::findOrFail($id);
 
         $request->validate([
             'first_name' => 'required|string|max:100',
-            'last_name'  => 'required|string|max:100',
-            'mobile'     => 'required|digits:11|unique:users,mobile,' . $user->id,
-            'phone'      => 'nullable|string|max:20',
-            'password'   => 'nullable|confirmed',
+            'last_name' => 'required|string|max:100',
+            'mobile' => 'required|digits:11|unique:users,mobile,' . $user->id,
+            'phone' => 'nullable|string|max:20',
+            'password' => 'nullable|confirmed',
         ]);
 
         $user->first_name = $request->first_name;
-        $user->last_name  = $request->last_name;
-        $user->mobile     = $request->mobile;
-        $user->phone      = $request->phone;
+        $user->last_name = $request->last_name;
+        $user->mobile = $request->mobile;
+        $user->phone = $request->phone;
 
         if ($request->password) {
             $user->password = bcrypt($request->password);
@@ -173,6 +175,25 @@ class AdminUserController extends Controller
         $user->save();
 
         return redirect()->route('admin.users.index')->with('success', 'کاربر با موفقیت ویرایش شد');
+    }
+
+    public function storeManualPayment(Request $request , $id)
+    {
+        $request->validate([
+            'amount' => 'required|numeric|min:1',
+            'type' => 'nullable',
+            'notes' => 'nullable',
+        ]);
+        $transaction = Payment::create([
+            'user_id' => $id,
+            'amount' => $request->amount,
+            'type' => $request->type,
+            'notes' => $request->notes,
+            'status' => 'paid'
+        ]);
+        return back();
+
+
     }
 
 

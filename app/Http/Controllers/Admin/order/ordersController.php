@@ -54,6 +54,7 @@ class ordersController extends Controller
         $request->validate([
             'status' => 'required',
         ]);
+
         if ($request->status == 'processing') {
 
 
@@ -83,7 +84,10 @@ class ordersController extends Controller
             }
         }
 
-        $order->update(['status' => $request->status]);
+        $order->update([
+            'status' => $request->status,
+            'restaurant_accept' => 0,
+        ]);
 
         return response()->json(['success' => true]);
     }

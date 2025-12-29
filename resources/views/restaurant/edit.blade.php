@@ -52,13 +52,18 @@
                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none">
             </div>
             <div>
-                <label for="mobile" class="block text-gray-700 font-medium mb-2">شماره تماس 3</label>
+                <label for="mobile" class="block text-gray-700 font-medium mb-2">شماره  ثابت</label>
                 <input type="text" name="mobile" id="mobile" required value="{{ old('mobile', $restaurant->mobile) }}"
                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none">
             </div>
             <div>
                 <label for="phone" class="block text-gray-700 font-medium mb-2">شماره تماس 4</label>
                 <input type="text" name="phone" id="phone" required value="{{ old('phone', $restaurant->phone) }}"
+                       class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none">
+            </div>
+            <div>
+                <label for="mobile3" class="block text-gray-700 font-medium mb-2">شماره تماس 5</label>
+                <input type="text" name="mobile3" id="mobile3" required value="{{ old('mobile3', $restaurant->mobile3) }}"
                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none">
             </div>
             <!-- انتخاب کاربر -->

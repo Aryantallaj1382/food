@@ -165,7 +165,6 @@ class ProductsMenuController extends controller
         }
 
         elseif ($type == "category") {
-            $category = Category::findOrFail($id);
             $user     = auth()->user();
             $rest     = Restaurant::where('user_id', $user->id)->firstOrFail();
 
@@ -262,8 +261,10 @@ class ProductsMenuController extends controller
 
     public function filterPayment(Request $request)
     {
+
         $user = auth()->user();
-        $query = Transaction::whereRelation('restaurant', 'user_id', $user->id);
+        $restaurant = Restaurant::where('user_id', $user->id)->firstOrFail();
+        $query = Transaction::where('restaurant_id', $restaurant->id);
         $fromDate = $request->input('from_date');
         $toDate = $request->input('to_date');
 
@@ -273,7 +274,7 @@ class ProductsMenuController extends controller
                 $toDate . ' 23:59:59'
             ]);
         }
-        $total = $query->where('type', 'credit')->sum('amount');
+        $total = (clone $query)->where('type', 'credit')->sum('amount');
 
         $payment = $query->orderBy('created_at', 'desc')->paginate(50);
 

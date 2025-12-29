@@ -63,10 +63,10 @@
 <body class="bg-gray-100 text-gray-800 font-sans">
 
 {{-- ✅ پیغام موبایل --}}
-<div id="mobileOverlay" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center p-6 text-center hidden">
-    <h1 class="text-2xl font-bold mb-2 text-gray-800">⚠️ وب‌سایت فقط روی دسکتاپ قابل استفاده است</h1>
-    <p class="text-gray-600">لطفاً با یک دستگاه دسکتاپ یا لپ‌تاپ وارد شوید.</p>
-</div>
+{{--<div id="mobileOverlay" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center p-6 text-center hidden">--}}
+{{--    <h1 class="text-2xl font-bold mb-2 text-gray-800">⚠️ وب‌سایت فقط روی دسکتاپ قابل استفاده است</h1>--}}
+{{--    <p class="text-gray-600">لطفاً با یک دستگاه دسکتاپ یا لپ‌تاپ وارد شوید.</p>--}}
+{{--</div>--}}
 
 {{-- هدر --}}
 @include('layouts.header')

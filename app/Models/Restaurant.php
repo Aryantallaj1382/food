@@ -32,28 +32,30 @@ class Restaurant extends Model
     }
     public function getIsOpenAttribute(): bool
     {
-        $status = SystemSetting::where('kay', 'system_status')->value('value');
-        if ($status == 0) {
-            return false;
-        }
+        return true;
 
-        $now = Carbon::now('Asia/Tehran')->format('H:i');
-
-        $morningStart = $this->morning_start;
-        $morningEnd   = $this->morning_end;
-        $eveningStart = $this->afternoon_start;
-        $eveningEnd   = $this->afternoon_end;
-
-        $inMorning = $morningStart && $morningEnd &&
-            ($now >= $morningStart && $now <= $morningEnd);
-
-        $inEvening = $eveningStart && $eveningEnd &&
-            ($now >= $eveningStart && $now <= $eveningEnd);
-
-        if (!$inMorning && !$inEvening) {
-            return false;
-        }
-        return (bool) $this->attributes['is_open'];
+//        $status = SystemSetting::where('kay', 'system_status')->value('value');
+//        if ($status == 0) {
+//            return false;
+//        }
+//
+//        $now = Carbon::now('Asia/Tehran')->format('H:i');
+//
+//        $morningStart = $this->morning_start;
+//        $morningEnd   = $this->morning_end;
+//        $eveningStart = $this->afternoon_start;
+//        $eveningEnd   = $this->afternoon_end;
+//
+//        $inMorning = $morningStart && $morningEnd &&
+//            ($now >= $morningStart && $now <= $morningEnd);
+//
+//        $inEvening = $eveningStart && $eveningEnd &&
+//            ($now >= $eveningStart && $now <= $eveningEnd);
+//
+//        if (!$inMorning && !$inEvening) {
+//            return false;
+//        }
+//        return (bool) $this->attributes['is_open'];
     }
 
 

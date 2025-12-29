@@ -30,6 +30,7 @@ Route::prefix('auth')->group(function () {
 Route::get('/search', [\App\Http\Controllers\Api\Food\SearchController::class,'search']);
 Route::get('/main', [\App\Http\Controllers\Api\MainController::class,'index']);
 Route::get('/category', [\App\Http\Controllers\Api\MainController::class,'category']);
+Route::get('/support', [\App\Http\Controllers\Api\MainController::class,'support']);
 Route::post('/complete-order', [\App\Http\Controllers\Api\Profile\ProfileController::class,'completed_order'])->middleware('auth:sanctum');
 Route::post('/complete-order', [\App\Http\Controllers\Api\Profile\ProfileController::class,'completed_order'])->middleware('auth:sanctum');
 Route::get('/near_restaurant', [\App\Http\Controllers\Api\Profile\nearestRestaurantsController::class,'nearestRestaurants']);
@@ -69,8 +70,9 @@ Route::prefix('restaurant')->controller(RestaurantController::class)->group(func
    Route::get('/comments/{id}', 'comments');
    Route::post('/toggle/{id}', 'toggle')->middleware('auth:sanctum');
 });
+
 Route::prefix('order')->controller(FinalOrderController::class)->group(function () {
-    Route::post('/send_price', 'send_price');
+    Route::get('/send_price', 'send_price');
     Route::post('/store/again', [PayAgainController::class, 'index']);
     Route::post('/callback', 'callback');
     Route::post('/check_discount', 'check_discount')->middleware('auth:sanctum');

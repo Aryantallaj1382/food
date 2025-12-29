@@ -19,7 +19,8 @@ class RestReportController extends Controller
         $to = $request->input('to');
         $send = $request->input('tab');
 
-        $orders = Order::whereRelation('restaurant', 'user_id', $user->id)->where('payment_status' , 'paid')->where('restaurant_id', $restaurant->id);
+        $orders = Order::whereRelation('restaurant', 'user_id', $user->id)
+            ->whereIn('status', ['processing', 'completed', 'delivery']);
 
         if ($from) {
             $orders->whereDate('created_at', '>=', $from);
@@ -27,8 +28,13 @@ class RestReportController extends Controller
         if ($to) {
             $orders->whereDate('created_at', '<=', $to);
         }
-        if ($send) {
-            $orders->where('sending_method', $send);
+        if ($send === 'in_person') {
+            $orders->where('payment_status', 'cash');
+        } elseif ($send === 'pike') {
+            $orders->where('payment_status', 'paid');
+        } else {
+            // حالت پیش‌فرض
+            $orders->whereIn('payment_status', ['cash', 'paid']);
         }
 
         $orders = $orders->with('items.option.food')->get();

@@ -42,12 +42,14 @@ class RestPanelController extends Controller
     {
         $user = auth()->user();
         $restaurant = Restaurant::where('user_id', $user->id)->first();
-        $order = Order::whereRelation('user' , 'id' , $user->id)->where('payment_status' , 'paid')
-            ->whereDate('created_at', Carbon::today())->orWhere('payment_status' , 'cash')
-            ->where('status','!=','delivery')->
-            where('status','!=','completed')->
-            where('status','!=','rejected   ')->
-            whereNotNull('time')->where('time','!=','now')->latest()->get();
+        $order = Order::whereRelation('restaurant', 'user_id', $user->id)
+            ->whereIn('payment_status', ['paid', 'cash'])
+            ->whereDate('created_at', Carbon::today())
+            ->whereNotIn('status', ['delivery', 'completed', 'rejected'])
+            ->whereNotNull('time')
+            ->where('time', '!=', 'now')
+            ->latest()
+            ->get();
 
         return api_response([
             'is_open' => $restaurant->is_open,

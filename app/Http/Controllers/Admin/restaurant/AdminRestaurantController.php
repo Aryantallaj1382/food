@@ -42,35 +42,43 @@ class AdminRestaurantController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'user_id' => 'required|exists:users,id',
+            'name' => 'nullable|string|max:255',
+            'user_id' => 'nullable|exists:users,id',
             'address' => 'nullable|string|max:500',
+            'phone' => 'nullable|string|max:500',
+            'mobile' => 'nullable|string|max:500',
+            'mobile3' => 'nullable|string|max:500',
             'text' => 'nullable|string|max:500',
             'description' => 'nullable|string|max:500',
-            'tax_enabled' => 'nullable',          // تغییر به nullable
+            'tax_enabled' => 'nullable',
             'panel_editable' => 'nullable',
-            'distance_km' => 'required',
-            'cost_per_km' => 'required',
-            'free_shipping' => 'required',
-            'cod_courier' => 'required',
-            'online_courier' => 'required',
-            'pay_type' => 'required',
-            'morning_end' => 'required',
-            'afternoon_end' => 'required',
-            'afternoon_start' => 'required',
-            'morning_start' => 'required',
+            'distance_km' => 'nullable',
+            'cost_per_km' => 'nullable',
+            'free_shipping' => 'nullable',
+            'cod_courier' => 'nullable',
+            'online_courier' => 'nullable',
+            'pay_type' => 'nullable',
+            'morning_end' => 'nullable',
+            'afternoon_end' => 'nullable',
+            'afternoon_start' => 'nullable',
+            'free_shipping_minimum' => 'nullable',
+            'fee' => 'nullable',
+            'team_text' => 'nullable',
+            'morning_start' => 'nullable',
             'grt_ready_minute' => 'nullable|integer|min:0',
+            'grt_ready_maximum' => 'nullable|integer|min:0',
             'sending_way' => 'nullable|string|max:255',
             'minimum_price' => 'nullable|numeric|min:0',
             'work_time' => 'nullable|string|max:255',
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
-            'is_open' => 'nullable|boolean',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
+            'is_open' => 'nullable',
             'send_price' => 'nullable|numeric|min:0',
             'discount_percentage' => 'nullable|numeric|min:0|max:100',
             'delivery_radius_km' => 'nullable|numeric|min:0',
             'discount' => 'nullable',
             'image' => 'nullable|image|max:2048',
+            'bg' => 'nullable|image|max:2048',
         ]);
         $validated['tax_enabled'] = $request->has('tax_enabled') ? 1 : 0;
         $validated['is_open'] = $request->has('is_open') ? 1 : 0;
@@ -82,6 +90,12 @@ class AdminRestaurantController extends Controller
             $imageName = time() . '_' . $image->getClientOriginalName();
             $image->move(public_path('uploads/restaurants'), $imageName);
             $validated['image'] = 'uploads/restaurants/' . $imageName;
+        }
+        if ($request->hasFile('bg')) {
+            $image = $request->file('bg');
+            $imageName = time() . '_' . $image->getClientOriginalName();
+            $image->move(public_path('uploads/restaurants'), $imageName);
+            $validated['bg'] = 'uploads/restaurants/' . $imageName;
         }
 
 
@@ -108,6 +122,7 @@ class AdminRestaurantController extends Controller
             'address' => 'nullable|string|max:500',
             'phone' => 'nullable|string|max:500',
             'mobile' => 'nullable|string|max:500',
+            'mobile3' => 'nullable|string|max:500',
             'text' => 'nullable|string|max:500',
             'description' => 'nullable|string|max:500',
             'tax_enabled' => 'nullable',
@@ -189,11 +204,11 @@ class AdminRestaurantController extends Controller
         return view('restaurant.orders', compact('orders'));
     }
     public function order_item($id)
-
     {
         $orders = OrderItem::where('order_id', $id)->paginate();
         $order = Order::find($id);
-        return view('restaurant.items', compact(['orders' , 'order']));
+        $total_amount = Order::where('user_id' , $order->user_id)->where('payment_status', 'paid')->orWhere('payment_status', 'cash ')->sum('total_amount');
+        return view('restaurant.items', compact(['orders' , 'order' , 'total_amount']));
     }
     public function map()
     {

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminCategoryController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminDiscountRestaurantController;
+use App\Http\Controllers\Admin\AdminMessageController;
 use App\Http\Controllers\Admin\AdminNotificationController;
 use App\Http\Controllers\Admin\AdminReportRestaurantController;
 use App\Http\Controllers\Admin\AdminRestaurantIntroductionController;
@@ -11,6 +12,8 @@ use App\Http\Controllers\Admin\discount\AdminDiscountCodeController;
 use App\Http\Controllers\Admin\food\AdminFoodController;
 use App\Http\Controllers\Admin\order\ordersController;
 use App\Http\Controllers\Admin\restaurant\AdminRestaurantController;
+use App\Http\Controllers\Admin\RestaurantServiceTimeController;
+use App\Http\Controllers\Admin\SupportController;
 use App\Http\Controllers\Admin\TelephoneOrderController;
 use App\Http\Controllers\Admin\Transaction\AdminTransactionController;
 use App\Http\Controllers\Admin\User\AdminUserController;
@@ -29,6 +32,21 @@ Route::get('/optimize', function () {
 });
 Route::get('/',[AdminDashboardController::class,'index'])->name('admin.dashboard');
 Route::prefix('admin')->name('admin.')->group(function () {
+
+       Route::get('restaurants/{restaurant}/service-times/edit', [RestaurantServiceTimeController::class, 'edit'])->name('restaurants.service_times.edit');
+       Route::put('restaurants/{restaurant}/service-times', [RestaurantServiceTimeController::class, 'update'])->name('restaurants.service_times.update');
+
+
+    Route::get('/support', [SupportController::class, 'index'])->name('support.index');
+    Route::put('/support', [SupportController::class, 'update'])->name('support.update');
+
+    Route::get('/message', [AdminMessageController::class, 'show'])
+        ->name('message.show');
+
+    Route::put('/message', [AdminMessageController::class, 'update'])
+        ->name('message.update');
+
+
     Route::resource('discount-codes', AdminDiscountCodeController::class);
 
     Route::prefix('restaurants')->name('restaurants.')->controller(AdminRestaurantController::class)->group(function () {
@@ -56,6 +74,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('/restaurant/food/{id}',  'destroy')->name('destroy');
         // ... سایر روت‌ها
     });
+
     Route::prefix('users')->name('users.')->controller(\App\Http\Controllers\Admin\User\AdminUserController::class)->group(function () {
         route::get('/','index')->name('index');
         route::delete('/{id}','destroy')->name('delete');
@@ -63,6 +82,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         route::post('/users/wallet/{user}','update')->name('update');
         Route::get('/users/create', 'create')->name('create');
         Route::post('/users', 'store')->name('store');
+        Route::post('/{id}/payments/manual','storeManualPayment')->name('payments.manual');
 
         Route::get('/users/{id}/edit', 'edit_user')->name('edit_user');
         Route::put('/users/{id}', 'update_user')->name('update_user');

@@ -143,6 +143,7 @@ class FinalOrderController extends Controller
         }
 
 
+
         if ($request->payment_method == 'cash')
         {
             $order->update(['payment_status' => 'cash', 'status' => 'pending' , 'total_amount' => $total]);
@@ -150,6 +151,7 @@ class FinalOrderController extends Controller
                 'user_id' => $user->id,
                 'order_id' => $order->id,
                 'amount' => $total,
+                'notes' => 'پرداخت مبلغ ' . $total. ' بابت سفارش شماره ' . $order->id . ' به صورت نقدی',
                 'payment_method' => 'wallet',
             ]);
             $message = 'کاربر '.$order->user->name.'یک سفارش پرداخت در محل ثبت کرد';
@@ -182,12 +184,14 @@ class FinalOrderController extends Controller
                 $user->wallet->save();
                 $order->total_amount = $total;
                 $order->save();
-                $order->update(['payment_status' => 'paid', 'status' => 'pending' , 'total_amount' => $total]);
+                $order->update(['payment_status' => 'paid', 'status' => 'pending' , 'total_amount' => $total,'payment_method'=>'online']);
                 Payment::create([
                     'user_id' => $user->id,
                     'order_id' => $order->id,
                     'amount' => $total,
                     'payment_method' => 'wallet',
+                    'notes' => 'پرداخت مبلغ ' . $total . ' بابت سفارش شماره ' . $order->id . ' با کیف پول',
+
                     'gateway' => $request->gateway,
                 ]);
                 Transaction::updateOrCreate([
@@ -205,14 +209,16 @@ class FinalOrderController extends Controller
             }
             else{
                 $new_balance = $total - $balance;
-                $user->wallet->balance = 0;
-                $user->wallet->save();
+                $order->wallet_price = $balance;
+                $order->save();
                 $order->total_amount = $total;
                 $order->save();
                 Payment::create([
                     'user_id' => $user->id,
                     'order_id' => $order->id,
                     'amount' => $total,
+                    'notes' => 'با کیف پول و درگاه، پرداخت مبلغ ' . $total . ' بابت سفارش شماره ' . $order->id,
+
                     'payment_method' => 'both',
                     'gateway' => $request->gateway,
                 ]);
@@ -232,6 +238,8 @@ class FinalOrderController extends Controller
                 'user_id' => $user->id,
                 'order_id' => $order->id,
                 'amount' => $total,
+                'notes' => 'پرداخت مبلغ ' . $total . ' با درگاه پول بابت سفارش شماره ' . $order->id,
+
                 'payment_method' => 'gateway',
                 'gateway' => $request->gateway,
             ]);
@@ -259,6 +267,7 @@ class FinalOrderController extends Controller
 
     public function send_price(Request $request)
     {
+
         $address= Address::find($request->address_id);
         $rest= Restaurant::find($request->restaurant_id);
         if ($rest?->free_shipping == 1){
@@ -365,6 +374,8 @@ class FinalOrderController extends Controller
             'transaction_id'=> $order->transaction_id,
 
         ]);
+        $user->wallet->balance = $user->wallet->balance - $order->wallet_price;
+        $user->wallet->save();
         Transaction::updateOrCreate([
             'tracking_code' => $order->id ,
         ],[
@@ -377,6 +388,7 @@ class FinalOrderController extends Controller
             'tracking_code' => $order->id ,
             'status' => 'success'
         ]);
+
         $message = 'کاربر '.$order->user->name.'یک سفارش پرداخت انلاین ثبت کرد';
 
         Notification::query()->create([

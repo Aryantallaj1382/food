@@ -19,6 +19,7 @@ class WalletController extends Controller
         $wallet = $user->wallet->balance;
         return api_response($wallet);
     }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -28,37 +29,39 @@ class WalletController extends Controller
         $user = auth()->user();
         if ($request->gateway == 'pars') {
             $a = new ParsinForWallet();
-              $id =   Payment::create([
-                    'amount'       => $request->amount,
-                    'transaction_id'    =>null,
-                    'status'       => 'pending',
-                    'gateway' => 'pars',
-                    'user_id'      => $user->id,
-                ]);
-            $b = $a->pay($request->amount , $user->id , 'https://api.testghazaresan.ir/api/wallet/callback?id=' . $id->id );
+            $id = Payment::create([
+                'amount' => $request->amount,
+                'transaction_id' => null,
+                'status' => 'pending',
+                'gateway' => 'pars',
+                'notes' => 'شارژ کیف پول به مبلغ ' . $request->amount,
+                'type' => 'deposit',
+                'user_id' => $user->id,
+            ]);
+            $b = $a->pay($request->amount, $user->id, 'https://api.testghazaresan.ir/api/wallet/callback?id=' . $id->id);
             $id->update([
                 'transaction_id' => $b['token']
             ]);
             return api_response($b['url']);
+        } else {
+            return api_response([], 'درگاه پرداخت تعریف نشده');
         }
-        else{
-            return api_response([],'درگاه پرداخت تعریف نشده');
-        }
-
 
 
     }
+
     protected $payment;
 
     public function __construct(ParsianPayment $payment)
     {
         $this->payment = $payment;
     }
+
     public function callback(Request $request)
     {
         $order_id = $request->input('id');
 
-        if (!$order_id ) {
+        if (!$order_id) {
             return $this->errorResponse('پارامترهای نامعتبر.');
         }
         $order = Payment::where('id', $order_id)->first();
@@ -80,6 +83,7 @@ class WalletController extends Controller
         $order->update([
             'status' => 'paid',
         ]);
+
         $user = $order->user;
 
         $wallet = $user->wallet()->firstOrCreate(
@@ -92,6 +96,7 @@ class WalletController extends Controller
 
         return $this->successResponse($order, 'پرداخت با موفقیت انجام شد.');
     }
+
     private function successResponse($order, $message)
     {
         return redirect('https://testghazaresan.ir/profile/wallet/success');
@@ -103,7 +108,6 @@ class WalletController extends Controller
     {
         return redirect('https://testghazaresan.ir/profile/wallet/failed');
 //        return $message ;
-
 
 
     }
