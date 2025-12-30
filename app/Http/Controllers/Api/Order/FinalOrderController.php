@@ -162,14 +162,15 @@ class FinalOrderController extends Controller
                 'is_seen' => 0,
             ]);
             Transaction::updateOrCreate([
-                'tracking_code' => $order->id ,
+                'order_id' => $order->id ,
             ],[
                 'user_id' => $user->id,
                 'restaurant_id'=> $order->restaurant->id,
                 'type' => 'credit' ,
+                'in_person' => 1 ,
                 'description' => 'سفارش غذا با کد سفارش '. $order->id,
                 'amount' => $order->total_price,
-                'tracking_code' => $order->id ,
+                'order_id' => $order->id ,
                 'status' => 'success'
             ]);
             return response()->json(['data'=>'https://testghazaresan.ir/search/payment/success/'.$order->id]);
@@ -195,14 +196,14 @@ class FinalOrderController extends Controller
                     'gateway' => $request->gateway,
                 ]);
                 Transaction::updateOrCreate([
-                    'tracking_code' => $order->id ,
+                    'order_id' => $order->id ,
                 ],[
                     'user_id' => $user->id,
                     'restaurant_id'=> $order->restaurant->id,
                     'type' => 'credit' ,
                     'description' => 'سفارش غذا با کد سفارش '. $order->id,
                     'amount' => $order->total_price,
-                    'tracking_code' => $order->id ,
+                    'order_id' => $order->id ,
                     'status' => 'success'
                 ]);
                 return api_response('https://testghazaresan.ir/search/payment/success/'.$order->id,'سفارش با موفقیت ثبت شد.');
@@ -213,6 +214,17 @@ class FinalOrderController extends Controller
                 $order->save();
                 $order->total_amount = $total;
                 $order->save();
+                Transaction::updateOrCreate([
+                    'order_id' => $order->id ,
+                ],[
+                    'user_id' => $user->id,
+                    'restaurant_id'=> $order->restaurant->id,
+                    'type' => 'credit' ,
+                    'description' => 'سفارش غذا با کد سفارش '. $order->id,
+                    'amount' => $order->total_price,
+                    'order_id' => $order->id ,
+                    'status' => 'pending'
+                ]);
                 Payment::create([
                     'user_id' => $user->id,
                     'order_id' => $order->id,
@@ -234,6 +246,17 @@ class FinalOrderController extends Controller
         {
             $order->total_amount = $total;
             $order->save();
+            Transaction::updateOrCreate([
+                'order_id' => $order->id ,
+            ],[
+                'user_id' => $user->id,
+                'restaurant_id'=> $order->restaurant->id,
+                'type' => 'credit' ,
+                'description' => 'سفارش غذا با کد سفارش '. $order->id,
+                'amount' => $order->total_price,
+                'order_id' => $order->id ,
+                'status' => 'pending'
+            ]);
             Payment::create([
                 'user_id' => $user->id,
                 'order_id' => $order->id,
@@ -377,7 +400,7 @@ class FinalOrderController extends Controller
         $user->wallet->balance = $user->wallet->balance - $order->wallet_price;
         $user->wallet->save();
         Transaction::updateOrCreate([
-            'tracking_code' => $order->id ,
+            'order_id' => $order->id ,
         ],[
             'user_id' => $user->id,
             'payment_id' => $payment->id,
@@ -385,7 +408,7 @@ class FinalOrderController extends Controller
             'type' => 'credit' ,
             'description' => 'سفارش غذا با کد سفارش '. $order->id,
             'amount' => $order->total_price,
-            'tracking_code' => $order->id ,
+            'order_id' => $order->id ,
             'status' => 'success'
         ]);
 

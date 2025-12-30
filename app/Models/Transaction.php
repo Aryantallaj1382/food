@@ -6,10 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Transaction extends Model
 {
-    protected $fillable = [
-        'payment_id', 'user_id', 'restaurant_id',
-        'type', 'amount', 'tracking_code', 'description', 'status'
-    ];
+    protected $guarded = [];
 
     public function payment()
     {

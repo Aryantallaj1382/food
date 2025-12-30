@@ -49,22 +49,17 @@ class AdminTransactionController extends Controller
         // گرفتن تراکنش‌ها
         $transactions = $restaurant->transactions()->where('status' , 'success')->orderBy('created_at', 'desc');
 
-        // فیلتر بر اساس نوع تراکنش
         if ($request->filled('type')) {
             $transactions->where('type', $request->type);
         }
 
-
-
-        // امکان paginate کردن برای مدیریت تعداد رکوردها
         $transactions = $transactions->paginate(20)->withQueryString();
 
-        // محاسبه مجموع اعتبار و بدهی برای رستوران
         $credit_sum = $restaurant->transactions()->where('type', 'credit')->where('status', 'success')->sum('amount');
         $debit_sum = $restaurant->transactions()->where('type', 'debit')->where('status', 'success')->sum('amount');
         $balance = $credit_sum - $debit_sum;
-        $statusText = $balance > 0 ? 'بستانکار' : ($balance < 0 ? 'بدهکار' : 'تسویه');
-        $statusColor = $balance > 0 ? 'text-green-600' : ($balance < 0 ? 'text-red-600' : 'text-gray-600');
+        $statusText = $balance > 0 ? 'بدهکار' : ($balance < 0 ? 'بستانکار' : 'تسویه');
+        $statusColor = $balance > 0 ? 'text-red-600' : ($balance < 0 ? 'text-green-600' : 'text-gray-600');
 
         return view('admin.transation.show', compact('restaurant', 'transactions', 'credit_sum', 'debit_sum', 'balance', 'statusText', 'statusColor'))
             ->with('filters', $request->only(['type', 'status']));

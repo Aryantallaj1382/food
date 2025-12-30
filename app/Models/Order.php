@@ -67,6 +67,9 @@ class Order extends Model
         if ($this->payment_status == 'pending'){
             return 'در مرحله ی پرداخت';
         }
+        elseif ($this->payment_status == 'failed'){
+            return 'عدم پرداخت کاربر';
+        }
         return Arr::get($map, $this->status, 'نامشخص');
     }
     public function getStatusUserFaAttribute()

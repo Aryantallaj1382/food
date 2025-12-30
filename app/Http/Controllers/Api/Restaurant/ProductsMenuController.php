@@ -283,9 +283,9 @@ class ProductsMenuController extends controller
             return [
                 'id' => $pay->id,
                 'amount' => $pay->amount,
-                'notes'=> $pay->description,
                 'status' => $pay->type,
-                'tracking_code' => $pay->tracking_code,
+                'tracking_code' => $pay->order_id,
+                'code' => $pay->tracking_code,
                 'created_at' => $pay->created_at
                     ? Jalalian::fromDateTime($pay->created_at)->format('Y/m/d H:i')
                     : null,
